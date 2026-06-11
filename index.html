@@ -1,0 +1,1785 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>التزام برو - لوحة التحكم الذكية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --bg-card: rgba(17,24,39,0.7);
+            --bg-card-hover: rgba(30,41,59,0.8);
+            --border-light: rgba(255,255,255,0.07);
+            --text-color: #f8fafc;
+            --hint-color: #94a3b8;
+            --gold-color: #f59e0b;
+            --gold-gradient: linear-gradient(135deg, #f59e0b, #d97706);
+            --accent-blue: #2563eb;
+            --blue-gradient: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            --green-gradient: linear-gradient(135deg, #10b981, #059669);
+            --success-color: #10b981;
+            --success-bg: rgba(16,185,129,0.1);
+            --danger-color: #ef4444;
+            --danger-bg: rgba(239,68,68,0.12);
+            --danger-border: rgba(239,68,68,0.25);
+            --logout-red: #dc2626;
+            --cyan-neon: #00F2FE;
+            --dark-navy: #0A0F1D;
+        }
+        * { -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--dark-navy);
+            color: var(--text-color);
+            margin: 0;
+            padding: 14px;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+            position: relative;
+            background-image: radial-gradient(circle at top left, rgba(0,242,254,0.06), transparent 40%),
+                              radial-gradient(circle at bottom right, rgba(16,185,129,0.04), transparent 40%);
+            background-attachment: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .webapp-container { width: 100%; max-width: 450px; margin: 0 auto; position: relative; }
+        #loginPage { display: flex; justify-content: center; align-items: center; min-height: 100vh; width: 100%; }
+        #loginPage .login-card {
+            background: var(--bg-card); backdrop-filter: blur(10px); border: 1px solid var(--border-light);
+            border-radius: 25px; padding: 30px; width: 90%; max-width: 380px; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        #loginPage .login-logo {
+            width: 100px; height: 100px; margin-bottom: 15px; border-radius: 50%;
+            border: 3px solid var(--cyan-neon); box-shadow: 0 0 15px rgba(0,242,254,0.3);
+            background: #fff; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 15px auto; overflow: hidden;
+        }
+        #loginPage .login-logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 50%; }
+        #loginPage .role-switch { display: flex; gap: 10px; margin-bottom: 20px; }
+        #loginPage .role-btn {
+            flex: 1; padding: 10px; border: 1px solid var(--cyan-neon); background: transparent;
+            color: var(--cyan-neon); border-radius: 12px; font-weight: bold; cursor: pointer;
+            transition: 0.3s; font-family: 'Cairo';
+        }
+        #loginPage .role-btn.active { background: var(--cyan-neon); color: #000; }
+        #loginPage .login-input {
+            width: 100%; padding: 14px; margin-bottom: 15px; background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(0,242,254,0.2); border-radius: 12px; color: white;
+            box-sizing: border-box; font-family: 'Cairo', sans-serif; font-size: 14px;
+        }
+        #loginPage .login-input:focus { border-color: var(--cyan-neon); outline: none; }
+        #loginPage .login-main-btn {
+            width: 100%; padding: 14px; background: linear-gradient(135deg, #00F2FE, #0ea5e9);
+            border: none; border-radius: 12px; font-weight: 900; color: #000; cursor: pointer;
+            transition: 0.2s; font-family: 'Cairo'; font-size: 15px;
+        }
+        #loginPage .login-main-btn:active { transform: scale(0.97); opacity: 0.9; }
+        #loginPage .login-link {
+            margin-top: 15px; font-size: 13px; color: var(--cyan-neon); cursor: pointer; text-decoration: underline;
+        }
+        #loginPage .login-footer { margin-top: 30px; font-size: 11px; color: #94a3b8; }
+        #loginPage .login-footer span { color: var(--cyan-neon); font-weight: bold; }
+        .login-shake { animation: loginShake 0.5s ease; }
+        @keyframes loginShake {
+            0%,100% { transform: translateX(0); }
+            20%,60% { transform: translateX(-8px); }
+            40%,80% { transform: translateX(8px); }
+        }
+        #loginPage .login-hidden { display: none; }
+
+        .success-modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.75); z-index: 10003; justify-content: center; align-items: center;
+            backdrop-filter: blur(6px);
+        }
+        .success-modal-overlay.show { display: flex; }
+        .success-modal {
+            background: linear-gradient(145deg, #0f172a, #0a0f1d);
+            border: 2px solid var(--cyan-neon); border-radius: 22px; padding: 0; width: 90%;
+            max-width: 380px; box-shadow: 0 0 40px rgba(0,242,254,0.25), 0 15px 40px rgba(0,0,0,0.6);
+            animation: successPopIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275); overflow: hidden;
+        }
+        @keyframes successPopIn {
+            from { opacity: 0; transform: scale(0.8) translateY(30px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .success-modal-header {
+            background: linear-gradient(135deg, #00F2FE, #0ea5e9);
+            padding: 20px; text-align: center; color: #090d16; position: relative;
+        }
+        .success-modal-header i { font-size: 32px; margin-left: 8px; vertical-align: middle; }
+        .success-modal-header span { font-size: 18px; font-weight: 800; vertical-align: middle; }
+        .success-modal-close {
+            position: absolute; top: 12px; right: 12px; color: #090d16; cursor: pointer;
+            font-size: 20px; background: none; border: none; font-family: 'Cairo';
+        }
+        .success-modal-body { padding: 18px 20px; }
+        .success-detail-row {
+            display: flex; align-items: center; gap: 10px; padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 13px;
+        }
+        .success-detail-row i { color: var(--cyan-neon); font-size: 16px; width: 20px; text-align: center; }
+        .success-detail-row .sd-label { color: var(--hint-color); flex-shrink: 0; }
+        .success-detail-row .sd-value { color: #fff; font-weight: 700; margin-right: auto; text-align: left; }
+        .success-modal-actions {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 16px 20px 20px 20px;
+        }
+        .success-modal-actions button {
+            padding: 12px; border-radius: 12px; font-family: 'Cairo'; font-size: 12px; font-weight: 700;
+            cursor: pointer; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.1);
+            background: transparent; color: #fff; display: flex; align-items: center;
+            justify-content: center; gap: 6px;
+        }
+        .success-modal-actions button i { font-size: 14px; }
+        .success-modal-actions button:active { transform: scale(0.94); }
+        .sm-whatsapp { border-color: #25D366; color: #25D366; }
+        .sm-whatsapp:active { background: rgba(37,211,102,0.1); }
+        .sm-print { border-color: var(--cyan-neon); color: var(--cyan-neon); }
+        .sm-print:active { background: rgba(0,242,254,0.08); }
+        .sm-new { border-color: var(--success-color); color: var(--success-color); }
+        .sm-new:active { background: rgba(16,185,129,0.08); }
+        .sm-exit { border-color: var(--danger-color); color: var(--danger-color); }
+        .sm-exit:active { background: rgba(239,68,68,0.08); }
+
+        .custom-alert {
+            display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            width: 85%; max-width: 380px; background: rgba(15,23,42,0.97);
+            border: 1px solid var(--cyan-neon); border-radius: 14px; padding: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7); z-index: 10000; text-align: center;
+            animation: slideInAlert 0.3s cubic-bezier(0.175,0.885,0.32,1.275); backdrop-filter: blur(10px);
+        }
+        @keyframes slideInAlert {
+            from { opacity: 0; transform: translate(-50%, -20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+        .custom-alert h4 { margin: 0 0 6px 0; color: var(--cyan-neon); font-size: 14px; }
+        .custom-alert p { margin: 0 0 12px 0; font-size: 12px; color: #cbd5e1; white-space: pre-wrap; word-break: break-all; }
+        .custom-alert button { background: var(--cyan-neon); border: none; padding: 6px 20px; color: #000; font-family: 'Cairo'; font-weight: 700; font-size: 12px; border-radius: 8px; cursor: pointer; }
+
+        .confirm-dialog {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7); z-index: 10001; justify-content: center; align-items: center; backdrop-filter: blur(4px);
+        }
+        .confirm-dialog.show { display: flex; }
+        .confirm-box {
+            background: linear-gradient(135deg, #0f172a, #090d16); border: 1px solid var(--cyan-neon);
+            border-radius: 18px; padding: 20px; text-align: center; max-width: 320px; width: 90%;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+        }
+        .confirm-box h4 { color: var(--cyan-neon); margin: 0 0 10px 0; font-size: 14px; }
+        .confirm-box p { font-size: 12px; color: #cbd5e1; margin-bottom: 16px; }
+        .confirm-box .confirm-actions { display: flex; gap: 10px; }
+        .confirm-box .confirm-actions button { flex: 1; padding: 10px; border-radius: 10px; font-family: 'Cairo'; font-size: 13px; font-weight: 700; cursor: pointer; border: none; transition: 0.2s; }
+        .btn-delete-confirm { background: var(--danger-color); color: #fff; }
+        .btn-delete-confirm:active { transform: scale(0.95); opacity: 0.8; }
+        .btn-cancel-confirm { background: #334155; color: #fff; }
+        .btn-cancel-confirm:active { transform: scale(0.95); opacity: 0.8; }
+
+        .toast-notification {
+            position: fixed; bottom: -80px; left: 50%; transform: translateX(-50%);
+            background: rgba(10,15,29,0.96); border: 1px solid var(--cyan-neon); border-radius: 12px;
+            padding: 10px 18px; color: #fff; font-size: 12px; font-weight: 700; z-index: 10002;
+            transition: bottom 0.4s cubic-bezier(0.175,0.885,0.32,1.275); white-space: nowrap;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5); backdrop-filter: blur(8px);
+        }
+        .toast-notification.show { bottom: 24px; }
+
+        .system-status-bar {
+            background: rgba(15,23,42,0.6); backdrop-filter: blur(8px); border: 1px solid var(--border-light);
+            border-radius: 12px; padding: 8px 14px; font-size: 11px; font-weight: 600; text-align: center;
+            margin-bottom: 16px; color: var(--hint-color); display: flex; justify-content: space-between; align-items: center;
+        }
+        .status-dot { display: inline-block; width: 8px; height: 8px; background-color: var(--success-color); border-radius: 50%; margin-left: 6px; box-shadow: 0 0 10px var(--success-color); }
+
+        .settings-top-trigger {
+            position: absolute; top: 52px; left: 2px; background: var(--bg-card); border: 1px solid var(--border-light);
+            width: 40px; height: 40px; border-radius: 12px; display: flex; justify-content: center; align-items: center;
+            font-size: 18px; cursor: pointer; z-index: 100; transition: all 0.2s cubic-bezier(0.175,0.885,0.32,1.275); backdrop-filter: blur(5px);
+        }
+        .settings-top-trigger:active { transform: scale(0.9) rotate(45deg); background: var(--bg-card-hover); }
+
+        .settings-dropdown {
+            display: none; background: linear-gradient(135deg, #0f172a, #090d16);
+            border: 1px solid rgba(0,242,254,0.3); border-radius: 16px; padding: 16px; margin-bottom: 16px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.5); animation: slideDown 0.3s ease-out; position: relative;
+        }
+        .settings-dropdown .settings-close {
+            position: absolute; top: 10px; right: 12px; color: var(--hint-color); cursor: pointer; font-size: 18px;
+        }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .logo-section { text-align: center; margin-bottom: 20px; margin-top: 5px; }
+        .logo-circle {
+            width: 100px; height: 100px; background-color: #ffffff; border-radius: 50%;
+            display: inline-flex; justify-content: center; align-items: center;
+            box-shadow: 0 0 0 5px var(--dark-navy), 0 0 0 7px var(--cyan-neon), 0 10px 25px rgba(0,0,0,0.5);
+            overflow: hidden; margin: 0 auto; position: relative;
+        }
+        .logo-circle img { width: 100%; height: 100%; object-fit: contain; border-radius: 50%; }
+
+        .user-card {
+            background: var(--bg-card); backdrop-filter: blur(10px); border: 1px solid var(--border-light);
+            border-radius: 16px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+        }
+        .user-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px; margin-bottom: 10px; font-size: 13px; }
+        .badge-premium { background: var(--cyan-neon); color: #000; padding: 2px 10px; border-radius: 20px; font-weight: 800; font-size: 11px; box-shadow: 0 2px 8px rgba(0,242,254,0.3); }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .stat-item { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 12px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+        .stat-label { color: var(--hint-color); } .stat-value { font-weight: 700; }
+
+        .page { display: none; }
+        .page.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .full-width { grid-column: span 2; }
+
+        .btn-item {
+            background: transparent; border: 1px solid rgba(255,255,255,0.12); border-radius: 14px;
+            padding: 14px 14px; cursor: pointer; display: flex; align-items: center; justify-content: flex-start;
+            gap: 12px; text-align: right; transition: all 0.15s cubic-bezier(0.25,0.46,0.45,0.94);
+            width: 100%; box-sizing: border-box; text-decoration: none; position: relative; overflow: hidden;
+            backdrop-filter: blur(5px); box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .btn-item:active {
+            transform: scale(0.96); border-color: var(--cyan-neon) !important;
+            background: rgba(0,242,254,0.05); box-shadow: 0 0 15px rgba(0,242,254,0.15);
+        }
+        .btn-item:active .btn-text { color: var(--cyan-neon); }
+        .btn-icon { font-size: 18px; display: inline-flex; align-items: center; justify-content: center; transition: 0.2s; color: var(--cyan-neon); }
+        .btn-text { font-size: 13px; font-weight: 600; color: #f8fafc; transition: 0.2s; }
+
+        .btn-item.add-entry-primary {
+            background: linear-gradient(135deg, #00F2FE, #0ea5e9) !important; border: none !important;
+            box-shadow: 0 4px 20px rgba(0,242,254,0.35); animation: pulseGlow 2s infinite;
+        }
+        @keyframes pulseGlow { 0%,100% { box-shadow: 0 4px 20px rgba(0,242,254,0.35); } 50% { box-shadow: 0 6px 28px rgba(0,242,254,0.55); } }
+        .btn-item.add-entry-primary .btn-text { color: #090d16 !important; font-weight: 800; font-size: 14px; }
+        .btn-item.add-entry-primary .btn-icon { color: #090d16; font-size: 20px; }
+        .btn-item.add-entry-primary:active { transform: scale(0.95); opacity: 0.85; }
+
+        .btn-item.boxes-trigger {
+            background: var(--green-gradient) !important; border: none !important;
+            box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+        }
+        .btn-item.boxes-trigger .btn-text { color: #fff; font-weight: 800; }
+        .btn-item.boxes-trigger:active { transform: scale(0.97); opacity: 0.9; }
+
+        .btn-item.all-services-trigger { background: var(--blue-gradient); border: none; box-shadow: 0 4px 14px rgba(37,99,235,0.3); }
+        .btn-item.all-services-trigger .btn-text { color: white; font-weight: 700; }
+        .btn-item.renew-trigger { background: var(--cyan-neon); border: none; box-shadow: 0 4px 15px rgba(0,242,254,0.3); }
+        .btn-item.renew-trigger .btn-text { color: #090d16; font-weight: 800; }
+        .btn-item.logout-btn { background: rgba(220,38,38,0.08); border: 1px solid rgba(220,38,38,0.3); justify-content: center; margin-top: 4px; }
+        .btn-item.logout-btn .btn-text { color: var(--logout-red); font-weight: 800; }
+        .btn-item.logout-btn:active { background: rgba(220,38,38,0.2); transform: scale(0.96); }
+
+        .back-btn {
+            width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.1); border-radius: 14px;
+            padding: 12px; color: var(--hint-color); font-size: 13px; font-weight: 700; font-family: 'Cairo', sans-serif;
+            cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 16px;
+            box-sizing: border-box; transition: all 0.2s; backdrop-filter: blur(5px);
+        }
+        .back-btn:active { transform: scale(0.97); border-color: var(--cyan-neon); color: var(--cyan-neon); }
+
+        .box-container-card {
+            background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(5,150,105,0.05));
+            border: 1px solid rgba(16,185,129,0.25); border-radius: 20px; padding: 18px; margin-top: 10px;
+            margin-bottom: 14px; box-shadow: 0 6px 20px rgba(16,185,129,0.1);
+        }
+        .box-header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(16,185,129,0.15); padding-bottom: 12px; margin-bottom: 14px; }
+        .box-card-title { font-size: 15px; font-weight: 800; color: var(--success-color); } .box-card-icon { font-size: 22px; }
+        .box-balance-item { display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.02); }
+        .box-balance-converted { font-size: 12px; color: var(--cyan-neon); margin-top: 10px; border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 10px; text-align: left; font-weight: 700; }
+        .box-card-actions { display: flex; justify-content: space-between; gap: 10px; margin-top: 16px; }
+        .box-action-sub-btn {
+            flex: 1; background: transparent; border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px; border-radius: 12px; color: #f8fafc; font-size: 12px; font-weight: 700; cursor: pointer;
+            text-align: center; font-family: 'Cairo', sans-serif; transition: all 0.2s;
+        }
+        .box-action-sub-btn:active { transform: scale(0.95); border-color: rgba(16,185,129,0.4); background: rgba(16,185,129,0.08); }
+        .box-action-sub-btn.add-box-btn { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); color: var(--success-color); font-weight: 800; }
+
+        .switch-modern { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch-modern input { opacity: 0; width: 0; height: 0; }
+        .slider-modern { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .3s; border-radius: 34px; }
+        .slider-modern:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider-modern { background-color: var(--cyan-neon); }
+        input:checked + .success-slider { background-color: var(--success-color); }
+        input:checked + .slider-modern:before { transform: translateX(20px); }
+
+        .filter-tabs { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 14px 2px; -ms-overflow-style: none; scrollbar-width: none; }
+        .filter-tabs::-webkit-scrollbar { display: none; }
+        .tab-btn {
+            background: transparent; border: 1px solid rgba(255,255,255,0.1); padding: 8px 20px; border-radius: 12px;
+            font-family: 'Cairo'; font-size: 13px; font-weight: 700; color: var(--hint-color); cursor: pointer; white-space: nowrap; transition: all 0.15s;
+        }
+        .tab-btn.active { background: linear-gradient(135deg, #00f2fe, #4facfe) !important; color: #0b1528 !important; border-color: var(--cyan-neon); box-shadow: 0 4px 10px rgba(0,242,254,0.25); font-weight: bold; }
+        .tab-btn:active { transform: scale(0.95); border-color: var(--cyan-neon); }
+
+        .quick-tabs-header { display: flex; gap: 6px; overflow-x: auto; padding: 6px 2px 14px 2px; -ms-overflow-style: none; scrollbar-width: none; }
+        .quick-tabs-header::-webkit-scrollbar { display: none; }
+        .quick-tab {
+            flex: 1; min-width: 80px; background: transparent; border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 14px; border-radius: 14px; font-family: 'Cairo'; font-size: 12px; font-weight: 700;
+            color: #fff; cursor: pointer; white-space: nowrap; text-align: center; transition: all 0.15s;
+        }
+        .quick-tab.active { background: linear-gradient(135deg, #00f2fe, #4facfe) !important; color: #0b1528 !important; border-color: var(--cyan-neon); box-shadow: 0 4px 12px rgba(0,242,254,0.3); font-weight: bold; }
+        .quick-tab:active { transform: scale(0.95); }
+
+        .filters-grid { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 18px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); backdrop-filter: blur(10px); }
+        .filter-row { display: flex; gap: 12px; margin-bottom: 12px; } .filter-row:last-child { margin-bottom: 0; } .filter-item { flex: 1; }
+        .filter-item label { display: block; font-size: 11px; font-weight: 700; color: var(--hint-color); margin-bottom: 6px; text-align: center; }
+        .filter-select, .filter-input { width: 100%; padding: 11px; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; font-family: 'Cairo'; font-size: 13px; background: var(--bg-dark); color: white; box-sizing: border-box; text-align: center; outline: none; transition: border 0.2s; }
+        .filter-input:focus, .filter-select:focus { border-color: var(--cyan-neon); }
+        .stats-grid-entries { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+        .stat-box { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 14px; padding: 12px 2px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .stat-val { font-size: 13px; font-weight: 800; margin-bottom: 4px; color: white; } .stat-lbl { font-size: 10px; color: var(--hint-color); font-weight: 700; }
+        #entriesList { display: flex; flex-direction: column; gap: 14px; }
+        .entry-card {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px;
+            padding: 16px; margin-bottom: 12px; backdrop-filter: blur(10px); box-shadow: 0 6px 15px rgba(0,0,0,0.25); transition: all 0.3s ease;
+        }
+        .entry-card:hover { border-color: rgba(0,242,254,0.3); }
+        .card-top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .time-stamp { font-size: 11px; color: var(--hint-color); }
+        .status-indicator { font-size: 12px; font-weight: 700; color: var(--cyan-neon); background: rgba(0,242,254,0.1); padding: 2px 8px; border-radius: 6px; }
+        .account-title { font-size: 16px; font-weight: 800; color: white; margin-bottom: 2px; }
+        .meta-text { font-size: 12px; color: var(--hint-color); }
+        .statement-text { font-size: 13px; color: #cbd5e1; margin: 10px 0 16px 0; line-height: 1.5; text-align: justify; }
+        .amount-num { font-size: 18px; font-weight: 800; }
+        .bottom-actions-row { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; margin-top: 6px; gap: 10px; }
+        .circle-action-btn { display: flex; align-items: center; justify-content: center; background: transparent; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; flex: 1; padding: 8px; border-radius: 12px; gap: 6px; transition: all 0.2s; }
+        .circle-action-btn:active { background: rgba(0,242,254,0.08); border-color: var(--cyan-neon); transform: scale(0.96); }
+        .circle-icon { font-size: 14px; color: var(--cyan-neon); } .btn-lbl { font-size: 12px; font-weight: 700; color: #e2e8f0; }
+        .invoice-glass-card { background: var(--bg-card); backdrop-filter: blur(15px); border: 1px solid var(--border-light); border-radius: 20px; padding: 18px; box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .form-grid .full-width { grid-column: span 2; }
+        .form-grid label { font-size: 11px; color: var(--hint-color); margin-bottom: 4px; display: block; font-weight: 700; }
+        .form-grid input, .form-grid select, .form-grid textarea {
+            width: 100%; padding: 10px; border-radius: 10px; background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.08); color: #fff; font-family: 'Cairo';
+            font-size: 12px; box-sizing: border-box; outline: none;
+        }
+        .form-grid input:focus, .form-grid select:focus, .form-grid textarea:focus { border-color: var(--cyan-neon); }
+
+        .popup-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
+        .popup-overlay.show { display: flex; }
+        .popup-content { background: var(--dark-navy); border: 1px solid rgba(0,242,254,0.3); border-radius: 20px; padding: 18px; width: 90%; max-width: 380px; max-height: 70vh; overflow-y: auto; box-shadow: 0 12px 30px rgba(0,0,0,0.6); }
+        .popup-content .popup-search { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border-light); background: var(--bg-card); color: #fff; font-family: 'Cairo'; font-size: 13px; margin-bottom: 12px; outline: none; box-sizing: border-box; }
+        .popup-content .popup-search:focus { border-color: var(--cyan-neon); }
+        .account-card-mini { background: rgba(255,255,255,0.03); border: 1px solid var(--border-light); border-radius: 14px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
+        .account-card-mini:active { background: rgba(0,242,254,0.08); border-color: var(--cyan-neon); }
+        .account-card-mini .acc-name { font-size: 14px; font-weight: 800; color: #fff; }
+        .account-card-mini .acc-balances { font-size: 11px; margin-top: 4px; }
+        .acc-balances span { display: block; margin: 2px 0; }
+
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            20%,60% { transform: translateX(-6px); }
+            40%,80% { transform: translateX(6px); }
+        }
+
+        .invoice-triple-actions { display: flex; gap: 8px; }
+        .invoice-triple-actions button { flex: 1; padding: 10px 6px; border-radius: 10px; font-family: 'Cairo'; font-size: 11px; font-weight: 700; cursor: pointer; transition: 0.2s; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: #fff; text-align: center; }
+        .invoice-triple-actions button:active { transform: scale(0.95); border-color: var(--cyan-neon); }
+
+        .permission-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .permission-item span { font-size: 13px; color: #e2e8f0; font-weight: 600; }
+
+        .currency-popup { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.65); z-index: 9998; justify-content: center; align-items: center; }
+        .currency-popup.show { display: flex; }
+        .currency-popup-content { background: var(--dark-navy); border: 1px solid var(--cyan-neon); border-radius: 16px; padding: 20px; width: 85%; max-width: 300px; box-shadow: 0 12px 30px rgba(0,0,0,0.6); text-align: center; }
+        .currency-popup-content h4 { color: var(--cyan-neon); margin: 0 0 14px 0; font-size: 14px; }
+        .currency-option { display: block; width: 100%; padding: 12px; margin-bottom: 8px; background: transparent; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff; font-family: 'Cairo'; font-size: 13px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .currency-option:active { background: rgba(0,242,254,0.08); border-color: var(--cyan-neon); }
+
+        .qr-popup-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 10010; justify-content: center; align-items: center; backdrop-filter: blur(6px); }
+        .qr-popup-overlay.show { display: flex; }
+        .qr-popup-content { background: #fff; border-radius: 20px; padding: 20px; text-align: center; max-width: 320px; width: 90%; box-shadow: 0 15px 40px rgba(0,0,0,0.6); }
+        .qr-popup-content h4 { color: #090d16; margin: 0 0 10px 0; font-family: 'Cairo'; font-size: 15px; }
+        .qr-popup-content img { width: 220px; height: 220px; object-fit: contain; margin: 10px 0; }
+        .qr-popup-content button { margin-top: 10px; background: var(--cyan-neon); border: none; padding: 10px 24px; border-radius: 10px; font-family: 'Cairo'; font-weight: 700; cursor: pointer; color: #000; }
+
+        .currency-showcase { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+        .currency-note {
+            width: 80px; height: 45px; border-radius: 8px; display: flex; align-items: center;
+            justify-content: center; font-weight: 800; font-size: 14px; color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .currency-note.yer { background: linear-gradient(135deg, #8B0000, #CD5C5C); }
+        .currency-note.sar { background: linear-gradient(135deg, #006400, #228B22); }
+        .currency-note.usd { background: linear-gradient(135deg, #00008B, #4169E1); }
+
+        .footer-credit {
+            text-align: center; font-size: 11px; color: #94a3b8; margin-top: 30px; padding: 10px 0;
+        }
+        .footer-credit span { color: var(--cyan-neon); font-weight: bold; font-size: 11px; }
+    </style>
+</head><body>
+
+    <!-- ============ SUCCESS MODAL ============ -->
+    <div id="successModalOverlay" class="success-modal-overlay">
+        <div class="success-modal">
+            <div class="success-modal-header">
+                <button class="success-modal-close" onclick="hideSuccessModal()"><i class="fa-solid fa-xmark"></i></button>
+                <i class="fa-regular fa-circle-check"></i>
+                <span>تمت الإضافة بنجاح!</span>
+            </div>
+            <div class="success-modal-body" id="successModalBody"></div>
+            <div class="success-modal-actions">
+                <button class="sm-whatsapp" onclick="successModalWhatsApp()"><i class="fa-brands fa-whatsapp"></i> واتساب</button>
+                <button class="sm-print" onclick="successModalPrint()"><i class="fa-solid fa-print"></i> طباعة</button>
+                <button class="sm-new" id="successRepeatBtn" onclick="successModalNewEntry()"><i class="fa-solid fa-plus"></i> + قيد جديد</button>
+                <button class="sm-exit" onclick="successModalExit()"><i class="fa-solid fa-xmark"></i> خروج</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ CUSTOM ALERT ============ -->
+    <div id="customAlert" class="custom-alert">
+        <h4 id="alertTitle">إشعار النظام الذكي</h4>
+        <p id="alertMessage"></p>
+        <button onclick="closeCustomAlert()">حسناً</button>
+    </div>
+
+    <!-- ============ CONFIRM DIALOG (مخصص داكن) ============ -->
+    <div id="confirmDialog" class="confirm-dialog">
+        <div class="confirm-box">
+            <h4>⚠️ تأكيد الحذف</h4>
+            <p id="confirmMessage">هل أنت متأكد من رغبتك في الحذف؟</p>
+            <div class="confirm-actions">
+                <button class="btn-cancel-confirm" onclick="closeConfirmDialog()">لا، إلغاء</button>
+                <button class="btn-delete-confirm" id="confirmDeleteBtn" onclick="executeDelete()">نعم، تأكيد الحذف</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ TOAST ============ -->
+    <div id="toastNotification" class="toast-notification">✨ تمت العملية بنجاح</div>
+
+    <!-- ============ ACCOUNT SEARCH POPUP ============ -->
+    <div id="accountSearchPopup" class="popup-overlay">
+        <div class="popup-content">
+            <input type="text" class="popup-search" placeholder="🔎 بحث بالاسم أو الرقم..." oninput="filterAccountsPopup()" id="popupSearchInput">
+            <button class="tab-btn active" style="width:100%; margin-bottom:10px;" onclick="resetAccountFilter()">الكل</button>
+            <div id="popupAccountList"></div>
+            <button class="back-btn" style="margin-top:8px;" onclick="closeAccountSearchPopup()">إغلاق</button>
+        </div>
+    </div>
+
+    <!-- ============ CURRENCY POPUP ============ -->
+    <div id="currencyPopup" class="currency-popup" onclick="closeCurrencyPopup()">
+        <div class="currency-popup-content" onclick="event.stopPropagation()">
+            <h4><i class="fa-solid fa-money-bill-transfer"></i> اختر العملة</h4>
+            <button class="currency-option" onclick="selectCurrency('YER')"><i class="fa-solid fa-coins"></i> يمني</button>
+            <button class="currency-option" onclick="selectCurrency('SAR')"><i class="fa-solid fa-coins"></i> سعودي</button>
+            <button class="currency-option" onclick="selectCurrency('USD')"><i class="fa-solid fa-coins"></i> دولار</button>
+            <button class="back-btn" style="margin-top:8px;" onclick="closeCurrencyPopup()">إغلاق</button>
+        </div>
+    </div>
+
+    <!-- ============ QR POPUP ============ -->
+    <div id="qrPopupOverlay" class="qr-popup-overlay">
+        <div class="qr-popup-content">
+            <h4>📱 امسح الباركود للربط بالواتساب</h4>
+            <img id="qrPopupImage" src="" alt="QR Code" style="width:220px; height:220px; object-fit:contain;">
+            <p style="font-size:11px; color:#555;">افتح واتساب على هاتفك وامسح الباركود</p>
+            <button onclick="closeQrPopup()">تم المسح</button>
+        </div>
+    </div>
+
+    <!-- ============ LOGIN PAGE ============ -->
+    <div id="loginPage">
+        <div class="login-card">
+            <div class="login-logo" id="loginLogoContainer">
+                <img src="https://i.postimg.cc/XYb4L5vC/Screenshot-20260609-215655.png" alt="التزام برو" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\"fa-solid fa-building-columns\" style=\"font-size:50px;color:#00F2FE;\"></i>';">
+            </div>
+            <div id="loginRoleContainer" class="role-switch">
+                <button class="role-btn active" id="btn-admin" onclick="setLoginRole('admin')">مدير</button>
+                <button class="role-btn" id="btn-employee" onclick="setLoginRole('employee')">موظف</button>
+            </div>
+            <h2 id="loginTitle">إنشاء حساب مدير</h2>
+            <input type="text" id="loginName" class="login-input" placeholder="الاسم الكامل">
+            <input type="tel" id="loginPhone" class="login-input" placeholder="رقم الهاتف">
+            <input type="password" id="loginPassword" class="login-input" placeholder="كلمة المرور">
+            <input type="password" id="loginConfirmPassword" class="login-input" placeholder="تأكيد كلمة المرور">
+            <button class="login-main-btn" onclick="handleLoginSubmit()">إنشاء الحساب</button>
+            <div class="login-link" id="loginToggleText" onclick="toggleLoginMode()">هل لديك حساب مسبقاً؟ سجل دخولك</div>
+            <div class="login-footer">برمجة وتطوير <span>يونس الكدهي | 775154169</span></div>
+        </div>
+    </div>
+
+    <!-- ============ MAIN APP CONTAINER ============ -->
+    <div class="webapp-container" id="mainAppContainer" style="display:none;">
+
+        <div class="system-status-bar">
+            <div><span class="status-dot"></span> حالة النظام: متصل</div>
+            <div>التزام برو v8.0 | 🔒 آمن</div>
+        </div>
+
+        <div class="settings-top-trigger" onclick="toggleSettingsDropdown()"><i class="fa-solid fa-gear"></i></div>
+
+        <div class="logo-section">
+            <div class="logo-circle" id="mainLogoContainer">
+                <img src="https://i.postimg.cc/XYb4L5vC/Screenshot-20260609-215655.png" alt="التزام برو" style="width:100%;height:100%;object-fit:contain;border-radius:50%;" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\"fa-solid fa-building-columns\" style=\"font-size:50px;color:#00F2FE;\"></i>';">
+            </div>
+            <div style="font-weight:800;font-size:25px;color:white;margin-top:10px;">التزام <span style="color:var(--cyan-neon);">برو</span></div>
+            <div style="font-weight:600;font-size:11px;color:var(--hint-color);">نظام الحسابات الذكي لإدارة الصناديق والخدمات</div>
+        </div>
+
+        <!-- الإعدادات المنسدلة -->
+        <div id="settingsDropdown" class="settings-dropdown">
+            <div class="settings-close" onclick="closeSettingsDropdown()"><i class="fa-solid fa-xmark"></i></div>
+            <div style="font-size:13px;font-weight:700;color:var(--cyan-neon);margin-bottom:10px;text-align:center;"><i class="fa-solid fa-gear"></i> الإعدادات</div>
+            <div class="grid-layout">
+                <button class="btn-item" onclick="switchPage('editProfilePage')"><span class="btn-icon"><i class="fa-solid fa-user-pen"></i></span><span class="btn-text">تعديل البيانات</span></button>
+                <button class="btn-item" onclick="switchPage('changePasswordPage')"><span class="btn-icon"><i class="fa-solid fa-lock"></i></span><span class="btn-text">تغيير كلمة السر</span></button>
+                <button class="btn-item" onclick="switchPage('staffManagementPage')"><span class="btn-icon"><i class="fa-solid fa-users"></i></span><span class="btn-text">إدارة الموظفين</span></button>
+                <button class="btn-item" onclick="switchPage('mainCurrencyPage')"><span class="btn-icon"><i class="fa-solid fa-coins"></i></span><span class="btn-text">العملة الرئيسية</span></button>
+                <button class="btn-item" onclick="switchPage('notificationsPage')"><span class="btn-icon"><i class="fa-solid fa-bell"></i></span><span class="btn-text">الإشعارات</span></button>
+                <button class="btn-item" onclick="switchPage('whatsappSettingsPage')"><span class="btn-icon"><i class="fa-brands fa-whatsapp"></i></span><span class="btn-text">إعدادات واتساب</span></button>
+                <button class="btn-item logout-btn full-width" onclick="logoutSession()"><span class="btn-text"><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</span></button>
+            </div>
+        </div>
+
+        <!-- بطاقة المستخدم -->
+        <div class="user-card">
+            <div class="user-header">
+                <div><i class="fa-solid fa-user"></i> المستخدم: <strong id="displayUserName">المدير</strong></div>
+                <span class="badge-premium"><i class="fa-solid fa-crown"></i> خطة مميزة</span>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-item"><span class="stat-label"><i class="fa-solid fa-circle-dollar"></i> إجمالي لكم</span><span class="stat-value" style="color:var(--success-color);" id="statTotalLakom">0</span></div>
+                <div class="stat-item"><span class="stat-label"><i class="fa-solid fa-circle-minus"></i> إجمالي عليكم</span><span class="stat-value" style="color:var(--danger-color);" id="statTotalAlaykom">0</span></div>
+                <div class="stat-item"><span class="stat-label"><i class="fa-solid fa-address-book"></i> عدد الحسابات</span><span class="stat-value" id="statAccounts">0</span></div>
+                <div class="stat-item"><span class="stat-label"><i class="fa-solid fa-scale-balanced"></i> الرصيد</span><span class="stat-value" id="statNetBalance">0</span></div>
+            </div>
+        </div>
+
+        <!-- الصفحات (سيتم إرسالها في الجزء الثالث) -->    <!-- صفحة إضافة قيد -->
+    <div id="addEntryPage" class="page">
+        <button class="back-btn" onclick="switchPage('mainPage')" style="margin-bottom:10px;"><i class="fa-solid fa-arrow-right"></i> رجوع للوحة التحكم</button>
+        <div class="quick-tabs-header">
+            <button class="quick-tab active" onclick="switchQuickTab('addEntryContent', this)"><i class="fa-solid fa-pen"></i> قيد</button>
+            <button class="quick-tab" onclick="switchQuickTab('transferAccountsContent', this)"><i class="fa-solid fa-shuffle"></i> تحويل</button>
+            <button class="quick-tab" onclick="switchQuickTab('currencyExchangeContent', this)"><i class="fa-solid fa-money-bill-transfer"></i> مصارفة</button>
+        </div>
+        <!-- قيد -->
+        <div id="addEntryContent" class="quick-tab-content">
+            <div class="invoice-glass-card">
+                <h3 style="color:var(--cyan-neon);text-align:center;margin-top:0;font-size:16px;"><i class="fa-solid fa-pen-to-square"></i> إضافة قيد</h3>
+                <div class="form-grid">
+                    <div class="full-width"><label><i class="fa-solid fa-building-columns"></i> الصندوق:</label><select id="entryBox"><option value="main_box" selected>🏦 الصندوق الرئيسي</option></select></div>
+                    <div><label><i class="fa-solid fa-calendar-days"></i> التاريخ:</label><input type="datetime-local" id="entryDateTime"></div>
+                    <div><label><i class="fa-solid fa-coins"></i> العملة:</label><select id="entryCurrency" onclick="openCurrencyPopup(this)"><option value="YER" selected>يمني</option><option value="SAR">سعودي</option><option value="USD">دولار</option></select></div>
+                    <div class="full-width"><label><i class="fa-solid fa-user"></i> الحساب:</label><div style="display:flex;gap:8px;"><select id="entryAccount" style="flex:1;" onfocus="openAccountSearchPopup()"><option value="">اختر الحساب</option></select><button onclick="openAccountSearchPopup()" style="background:transparent;border:1px solid rgba(0,242,254,0.2);border-radius:10px;padding:0 12px;cursor:pointer;color:var(--cyan-neon);font-weight:700;"><i class="fa-solid fa-magnifying-glass"></i></button></div></div>
+                    <div class="full-width"><label><i class="fa-solid fa-money-bill"></i> المبلغ:</label><input type="number" id="entryAmount" placeholder="0.00" oninput="watchAmountInput(this,'amountFeedback')"><div id="amountFeedback" style="font-size:11px;margin-top:4px;color:var(--hint-color);"></div></div>
+                    <div class="full-width"><label><i class="fa-solid fa-align-left"></i> البيان:</label><textarea id="entryStatement" placeholder="تفاصيل القيد المحاسبي..." style="height:70px;resize:none;"></textarea></div>
+                </div>
+                <div style="display:flex;gap:12px;margin-top:12px;">
+                    <button onclick="saveNewEntryDirect('credit')" style="flex:1;background:var(--success-color);border:none;border-radius:12px;padding:14px;color:#fff;font-weight:800;cursor:pointer;font-family:'Cairo';font-size:14px;"><i class="fa-solid fa-arrow-up"></i> له (دائن)</button>
+                    <button onclick="saveNewEntryDirect('debit')" style="flex:1;background:var(--danger-color);border:none;border-radius:12px;padding:14px;color:#fff;font-weight:800;cursor:pointer;font-family:'Cairo';font-size:14px;"><i class="fa-solid fa-arrow-down"></i> عليه (مدين)</button>
+                </div>
+            </div>
+        </div>
+        <!-- تحويل -->
+        <div id="transferAccountsContent" class="quick-tab-content" style="display:none;">
+            <div class="invoice-glass-card">
+                <h3 style="color:var(--cyan-neon);text-align:center;margin-top:0;font-size:16px;"><i class="fa-solid fa-shuffle"></i> تحويل</h3>
+                <div class="form-grid">
+                    <div class="full-width"><label><i class="fa-solid fa-building-columns"></i> الصندوق:</label><select><option value="main_box" selected>🏦 الصندوق الرئيسي</option></select></div>
+                    <div class="full-width"><label><i class="fa-solid fa-user-minus"></i> من حساب:</label><select onfocus="openAccountSearchPopup()"><option value="">اختر الحساب المصدر</option></select></div>
+                    <div class="full-width"><label><i class="fa-solid fa-user-plus"></i> إلى حساب:</label><select onfocus="openAccountSearchPopup()"><option value="">اختر الحساب الهدف</option></select></div>
+                    <div><label><i class="fa-solid fa-coins"></i> العملة:</label><select onclick="openCurrencyPopup(this)"><option value="YER" selected>يمني</option><option value="SAR">سعودي</option><option value="USD">دولار</option></select></div>
+                    <div><label><i class="fa-solid fa-money-bill"></i> المبلغ:</label><input type="number" placeholder="0.00"></div>
+                    <div class="full-width"><label><i class="fa-solid fa-align-left"></i> البيان:</label><textarea placeholder="سبب التحويل..." style="height:60px;resize:none;"></textarea></div>
+                </div>
+                <button class="btn-item" style="justify-content:center;background:var(--cyan-neon);color:#090d16;font-weight:800;width:100%;border:none;margin-top:12px;" onclick="showToastAndSave('تحويل')"><i class="fa-solid fa-floppy-disk"></i> ترحيل</button>
+            </div>
+        </div>
+        <!-- مصارفة -->
+        <div id="currencyExchangeContent" class="quick-tab-content" style="display:none;">
+            <div class="invoice-glass-card">
+                <h3 style="color:var(--cyan-neon);text-align:center;margin-top:0;font-size:16px;"><i class="fa-solid fa-money-bill-transfer"></i> مصارفة</h3>
+                <div style="display:flex;gap:8px;margin-bottom:16px;">
+                    <button id="exchangeClientTab" class="quick-tab active" style="flex:1;" onclick="switchExchangeMode('client',this)"><i class="fa-solid fa-user"></i> مصارفة عميل</button>
+                    <button id="exchangeBoxTab" class="quick-tab" style="flex:1;" onclick="switchExchangeMode('box',this)"><i class="fa-solid fa-building-columns"></i> مصارفة صندوق</button>
+                </div>
+                <div id="exchangeClientContent">
+                    <div class="form-grid">
+                        <div class="full-width"><label><i class="fa-solid fa-building-columns"></i> الصندوق:</label><select id="exBox"><option value="main_box" selected>🏦 الصندوق الرئيسي</option></select></div>
+                        <div class="full-width"><label><i class="fa-solid fa-user"></i> العميل:</label><div style="display:flex;gap:8px;"><select id="exClientSelect" style="flex:1;" onfocus="openAccountSearchPopup()"><option value="">اختر العميل</option></select><button onclick="openAccountSearchPopup()" style="background:transparent;border:1px solid rgba(0,242,254,0.2);border-radius:10px;padding:0 12px;cursor:pointer;color:var(--cyan-neon);font-weight:700;"><i class="fa-solid fa-magnifying-glass"></i></button></div></div>
+                        <div><label>من عملة:</label><select id="exFromCurrency" onclick="openCurrencyPopup(this)"><option value="YER">يمني</option><option value="SAR">سعودي</option><option value="USD">دولار</option></select></div>
+                        <div><label>إلى عملة:</label><select id="exToCurrency" onclick="openCurrencyPopup(this)"><option value="SAR">سعودي</option><option value="YER">يمني</option><option value="USD">دولار</option></select></div>
+                        <div><label>المبلغ:</label><input type="number" id="exAmount" placeholder="0.00" oninput="updateExchangeRemaining()"></div>
+                        <div><label>سعر الصرف:</label><input type="number" id="exRate" placeholder="مثلاً 139.5" oninput="updateExchangeRemaining()"></div>
+                        <div class="full-width" id="exchangeRemainingClient" style="background:rgba(0,242,254,0.06);border:1px dashed rgba(0,242,254,0.3);padding:10px;border-radius:10px;font-size:11px;color:var(--cyan-neon);">📌 الناتج: <strong style="color:#fff;" id="exRemainingValueClient">0.0</strong></div>
+                    </div>
+                    <button class="btn-item" style="justify-content:center;background:var(--cyan-neon);color:#090d16;font-weight:800;width:100%;border:none;" onclick="executeExchange('client')"><i class="fa-solid fa-floppy-disk"></i> تنفيذ المصارفة</button>
+                </div>
+                <div id="exchangeBoxContent" style="display:none;">
+                    <div class="form-grid">
+                        <div class="full-width"><label>الصندوق:</label><select id="exBoxOnly"><option value="main_box" selected>🏦 الصندوق الرئيسي</option></select></div>
+                        <div><label>من عملة:</label><select id="exFromCurrencyBox" onclick="openCurrencyPopup(this)"><option value="YER">يمني</option><option value="SAR">سعودي</option><option value="USD">دولار</option></select></div>
+                        <div><label>إلى عملة:</label><select id="exToCurrencyBox" onclick="openCurrencyPopup(this)"><option value="SAR">سعودي</option><option value="YER">يمني</option><option value="USD">دولار</option></select></div>
+                        <div><label>المبلغ:</label><input type="number" id="exAmountBox" placeholder="0.00" oninput="updateExchangeRemainingBox()"></div>
+                        <div><label>سعر الصرف:</label><input type="number" id="exRateBox" placeholder="مثلاً 139.5" oninput="updateExchangeRemainingBox()"></div>
+                        <div class="full-width" id="exchangeRemainingBox" style="background:rgba(0,242,254,0.06);border:1px dashed rgba(0,242,254,0.3);padding:10px;border-radius:10px;font-size:11px;color:var(--cyan-neon);">📌 الناتج: <strong style="color:#fff;" id="exRemainingValueBox">0.0</strong></div>
+                    </div>
+                    <button class="btn-item" style="justify-content:center;background:var(--cyan-neon);color:#090d16;font-weight:800;width:100%;border:none;" onclick="executeExchange('box')"><i class="fa-solid fa-floppy-disk"></i> تنفيذ المصارفة</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- إدارة القيود -->
+    <div id="entriesPage" class="page">
+        <div class="filter-tabs">
+            <button class="tab-btn" onclick="filterEntries('day',this)">يومي</button><button class="tab-btn" onclick="filterEntries('week',this)">أسبوعي</button><button class="tab-btn" onclick="filterEntries('month',this)">شهري</button><button class="tab-btn" onclick="filterEntries('year',this)">سنوي</button><button class="tab-btn active" onclick="filterEntries('all',this)">الكل</button>
+        </div>
+        <div class="filters-grid">
+            <div class="filter-row">
+                <div class="filter-item"><label><i class="fa-solid fa-user"></i> الحساب</label><select class="filter-select" id="filterAccount"><option>الكل</option></select></div>
+                <div class="filter-item"><label><i class="fa-solid fa-coins"></i> العملة</label><select class="filter-select" id="filterCurrency"><option>الكل</option></select></div>
+                <div class="filter-item"><label><i class="fa-solid fa-building-columns"></i> الصندوق</label><select class="filter-select" id="filterBox" onchange="filterByBox(this.value)"><option value="all">الكل</option><option value="main_box">الصندوق الرئيسي</option></select></div>
+            </div>
+            <div class="filter-row">
+                <div class="filter-item"><label>من تاريخ</label><input type="date" class="filter-input" id="dateFrom"></div>
+                <div class="filter-item"><label>إلى تاريخ</label><input type="date" class="filter-input" id="dateTo"></div>
+                <div class="filter-item"><label>بحث</label><input type="text" class="filter-input" placeholder="ابحث..." oninput="searchEntriesLive(this.value)"></div>
+            </div>
+        </div>
+        <div class="stats-grid-entries">
+            <div class="stat-box"><div class="stat-val" id="entriesCount">0</div><div class="stat-lbl">العدد</div></div>
+            <div class="stat-box"><div class="stat-val" style="color:var(--success-color);" id="totalCredit">0.00</div><div class="stat-lbl">إجمالي له</div></div>
+            <div class="stat-box"><div class="stat-val" style="color:var(--danger-color);" id="totalDebit">0.00</div><div class="stat-lbl">إجمالي عليه</div></div>
+            <div class="stat-box"><div class="stat-val" id="netBalance">0.00</div><div class="stat-lbl">الرصيد</div></div>
+        </div>
+        <div id="entriesList"></div>
+        <div style="text-align:center;margin-top:12px;"><button onclick="refreshDataWithLoader(this)" style="background:transparent;border:2px solid var(--cyan-neon);border-radius:50%;width:40px;height:40px;cursor:pointer;font-size:18px;"><i class="fa-solid fa-rotate"></i></button></div>
+        <button class="back-btn" onclick="switchPage('mainPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button>
+    </div>
+
+    <!-- الصناديق -->
+    <div id="boxesPage" class="page">
+        <div class="box-container-card">
+            <div class="box-header-row"><div class="box-card-title"><i class="fa-solid fa-building-columns"></i> الصندوق الرئيسي</div><div class="box-card-icon"><i class="fa-solid fa-vault"></i></div></div>
+            <div class="box-balance-item"><span>الريال اليمني</span><span style="color:var(--success-color);">لكم 0.0</span></div>
+            <div class="box-balance-item"><span>الريال السعودي</span><span style="color:var(--danger-color);">عليكم 0.0</span></div>
+            <div class="box-balance-item"><span>الدولار الأمريكي</span><span style="color:var(--danger-color);">عليكم 0.0</span></div>
+            <div class="box-balance-converted">إجمالي الرصيد: 0.0 ريال يمني</div>
+            <div class="box-card-actions">
+                <button class="box-action-sub-btn" onclick="switchPage('editBoxPage')"><i class="fa-solid fa-pen-to-square"></i> تعديل</button>
+                <button class="box-action-sub-btn" onclick="switchPage('transferBoxPage')"><i class="fa-solid fa-shuffle"></i> تحويل</button>
+                <button class="box-action-sub-btn" onclick="switchPage('exchangeBoxPage')"><i class="fa-solid fa-money-bill-transfer"></i> مصارفة</button>
+            </div>
+            <button class="box-action-sub-btn add-box-btn full-width" style="margin-top:12px;" onclick="switchPage('addBoxPage')"><i class="fa-solid fa-plus"></i> إضافة صندوق جديد</button>
+        </div>
+        <button class="back-btn" onclick="switchPage('mainPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button>
+    </div>
+
+    <!-- الخدمات -->
+    <div id="servicesPage" class="page">
+        <div class="grid-layout">
+            <button class="btn-item" onclick="switchPage('receiptVoucherPage')"><span class="btn-icon"><i class="fa-solid fa-money-check-dollar"></i></span><span class="btn-text">سند قبض / صرف</span></button>
+            <button class="btn-item" onclick="switchPage('directoryPage')"><span class="btn-icon"><i class="fa-solid fa-address-book"></i></span><span class="btn-text">الحسابات</span></button>
+            <button class="btn-item" onclick="switchPage('addEntryPage');switchQuickTab('currencyExchangeContent',document.querySelector('#addEntryPage .quick-tab:nth-child(3)'))"><span class="btn-icon"><i class="fa-solid fa-money-bill-transfer"></i></span><span class="btn-text">مصارفة العملات</span></button>
+            <button class="btn-item" onclick="switchPage('addEntryPage');switchQuickTab('transferAccountsContent',document.querySelector('#addEntryPage .quick-tab:nth-child(2)'))"><span class="btn-icon"><i class="fa-solid fa-shuffle"></i></span><span class="btn-text">تحويل</span></button>
+            <button class="btn-item" onclick="switchPage('salesInvoicePage')"><span class="btn-icon"><i class="fa-solid fa-cart-shopping"></i></span><span class="btn-text">فاتورة مبيعات</span></button>
+            <button class="btn-item" onclick="switchPage('itemsPage')"><span class="btn-icon"><i class="fa-solid fa-tags"></i></span><span class="btn-text">إدارة الأصناف</span></button>
+            <button class="btn-item" onclick="switchPage('warehousesPage')"><span class="btn-icon"><i class="fa-solid fa-warehouse"></i></span><span class="btn-text">المخازن</span></button>
+            <button class="btn-item full-width" onclick="switchPage('utilitySystemPage')"><span class="btn-icon"><i class="fa-solid fa-bolt"></i></span><span class="btn-text" style="color:var(--cyan-neon);">منظومة الكهرباء والماء</span></button>
+            <button class="btn-item" onclick="switchPage('reportsPage')"><span class="btn-icon"><i class="fa-solid fa-chart-pie"></i></span><span class="btn-text">التقارير</span></button>
+            <button class="btn-item" onclick="switchPage('moneyTransferPage')"><span class="btn-icon"><i class="fa-solid fa-money-bill-wave"></i></span><span class="btn-text">حوالة مالية</span></button>
+            <button class="btn-item" onclick="switchPage('debtFollowupPage')"><span class="btn-icon"><i class="fa-solid fa-chart-line"></i></span><span class="btn-text">متابعة الديون</span></button>
+            <button class="btn-item" onclick="callSupport()"><span class="btn-icon"><i class="fa-solid fa-headset"></i></span><span class="btn-text">الدعم المباشر</span></button>
+            <button class="btn-item renew-trigger full-width" onclick="openWhatsApp()"><i class="fa-solid fa-crown"></i> تجديد الاشتراك</button>
+            <button class="back-btn full-width" onclick="switchPage('mainPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button>
+        </div>
+    </div>
+
+    <!-- منظومة فواتير الكهرباء والماء -->
+    <div id="utilitySystemPage" class="page">
+        <div class="filter-tabs">
+            <button class="tab-btn" onclick="filterUtility('day',this)">يومي</button><button class="tab-btn" onclick="filterUtility('week',this)">أسبوعي</button><button class="tab-btn active" onclick="filterUtility('month',this)">شهري</button><button class="tab-btn" onclick="filterUtility('year',this)">سنوي</button><button class="tab-btn" onclick="filterUtility('all',this)">الكل</button>
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:14px;">
+            <div style="flex:1;background:rgba(15,23,42,0.4);border:1px solid var(--border-light);border-radius:12px;padding:6px 12px;"><span style="font-size:10px;color:var(--hint-color);display:block;">من تاريخ</span><input type="date" id="utilityDateFrom" style="background:transparent;border:none;color:#fff;font-family:'Cairo';font-size:13px;width:100%;outline:none;"></div>
+            <div style="flex:1;background:rgba(15,23,42,0.4);border:1px solid var(--border-light);border-radius:12px;padding:6px 12px;"><span style="font-size:10px;color:var(--hint-color);display:block;">إلى تاريخ</span><input type="date" id="utilityDateTo" style="background:transparent;border:none;color:#fff;font-family:'Cairo';font-size:13px;width:100%;outline:none;"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+            <div class="stat-box"><div class="stat-val" style="color:var(--cyan-neon);">0</div><div class="stat-lbl">الفواتير</div></div>
+            <div class="stat-box"><div class="stat-val">0</div><div class="stat-lbl">الاستهلاك</div></div>
+            <div class="stat-box"><div class="stat-val" style="color:var(--success-color);">0</div><div class="stat-lbl">المبالغ</div></div>
+        </div>
+        <div style="margin-bottom:10px;"><span style="font-size:12px;color:var(--hint-color);"><i class="fa-solid fa-receipt"></i> آخر الفواتير:</span></div>
+        <div style="text-align:center;padding:20px;color:var(--hint-color);font-size:12px;">لا توجد فواتير مسجلة بعد</div>
+        <div style="text-align:center;margin-top:10px;"><button onclick="switchPage('invoicePage')" style="width:100%;background:var(--cyan-neon);border:none;border-radius:12px;padding:12px;color:#000;font-weight:800;cursor:pointer;"><i class="fa-solid fa-plus"></i> إضافة فاتورة</button></div>
+        <button class="back-btn" onclick="switchPage('servicesPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button>
+    </div>
+
+    <!-- إضافة فاتورة -->
+    <div id="invoicePage" class="page">
+        <div class="invoice-glass-card">
+            <h3 style="color:var(--cyan-neon);text-align:center;margin-top:0;font-size:16px;"><i class="fa-solid fa-file-invoice"></i> إضافة فاتورة</h3>
+            <div class="form-grid">
+                <div class="full-width"><label><i class="fa-solid fa-building-columns"></i> الصندوق:</label><select id="invoiceBox"><option value="main_box" selected>🏦 الصندوق الرئيسي</option></select></div>
+                <div class="full-width"><label>نوع الخدمة:</label><div style="display:flex;gap:8px;"><button id="elecTypeBtn" class="quick-tab active" style="flex:1;" onclick="setInvoiceType('electricity',this)"><i class="fa-solid fa-bolt"></i> كهرباء</button><button id="waterTypeBtn" class="quick-tab" style="flex:1;" onclick="setInvoiceType('water',this)"><i class="fa-solid fa-droplet"></i> ماء</button></div></div>
+                <div class="full-width"><label><i class="fa-solid fa-user"></i> المشترك:</label><div style="display:flex;gap:8px;"><input type="text" id="customerNameNew" placeholder="اسم العميل" style="flex:1;" oninput="updateInvoicePrevReading()"><button onclick="openAccountSearchPopup()" style="background:transparent;border:1px solid rgba(0,242,254,0.2);border-radius:10px;padding:0 12px;color:var(--cyan-neon);"><i class="fa-solid fa-magnifying-glass"></i></button></div></div>
+                <div class="full-width"><label><i class="fa-solid fa-coins"></i> العملة:</label><div style="display:flex;gap:20px;padding:8px 14px;background:rgba(255,255,255,0.02);border-radius:10px;"><label style="cursor:pointer;font-size:13px;color:#fff;"><input type="radio" name="invoiceCurrencyNew" value="YER" checked> يمني</label><label style="cursor:pointer;font-size:13px;color:#fff;"><input type="radio" name="invoiceCurrencyNew" value="SAR"> سعودي</label><label style="cursor:pointer;font-size:13px;color:#fff;"><input type="radio" name="invoiceCurrencyNew" value="USD"> دولار</label></div></div>
+                <div class="full-width" style="background:rgba(0,242,254,0.06);border:1px dashed rgba(0,242,254,0.3);padding:10px;border-radius:10px;font-size:11px;color:var(--cyan-neon);">📌 القراءة السابقة: <strong id="prevReadingValue">0.0</strong></div>
+                <div class="full-width"><label>القراءة الحالية:</label><div style="display:flex;gap:8px;"><input type="number" id="currentReadingNew" placeholder="القراءة الحالية" style="flex:1;"><button onclick="openCamera()" style="background:transparent;border:1px solid var(--border-light);border-radius:10px;padding:0 16px;color:#fff;"><i class="fa-solid fa-camera"></i></button></div></div>
+            </div>
+            <button class="btn-item" style="justify-content:center;background:var(--cyan-neon);color:#090d16;font-weight:800;width:100%;border:none;margin-top:12px;" onclick="saveNewInvoice()"><i class="fa-solid fa-floppy-disk"></i> حفظ الفاتورة</button>
+            <button class="back-btn" onclick="switchPage('utilitySystemPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button>
+        </div>
+    </div>
+
+    <!-- إضافة حساب -->
+    <div id="addAccountPage" class="page">
+        <div class="invoice-glass-card">
+            <h3 style="color:var(--cyan-neon);text-align:center;margin-top:0;font-size:16px;"><i class="fa-solid fa-user-plus"></i> إضافة حساب</h3>
+            <div class="form-grid">
+                <div class="full-width"><label><i class="fa-solid fa-user"></i> اسم الحساب:</label><input type="text" id="accName" placeholder="أدخل اسم الحساب"></div>
+                <div class="full-width"><label><i class="fa-solid fa-phone"></i> رقم الهاتف:</label><div style="display:flex;gap:8px;"><input type="tel" id="accPhone" placeholder="77xxxxxxx" style="flex:1;"><button onclick="openContacts()" style="background:transparent;border:1px solid rgba(0,242,254,0.2);border-radius:10px;padding:0 12px;color:var(--cyan-neon);"><i class="fa-solid fa-address-book"></i></button></div></div>
+            </div>
+            <div style="background:rgba(15,23,42,0.4);border:1px solid var(--border-light);border-radius:14px;padding:14px;margin-bottom:16px;margin-top:14px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><span style="color:#fff;font-weight:700;"><i class="fa-solid fa-shield-halved"></i> حد سقف المديونية</span><label class="switch-modern"><input type="checkbox" id="toggleCeiling" onchange="toggleCeilingInput()"><span class="slider-modern"></span></label></div>
+                <div id="ceilingInputContainer" style="display:none;"><input type="number" id="ceilingAmount" placeholder="الحد الأقصى بالريال اليمني" style="width:100%;border-radius:10px;padding:10px;"></div>
+            </div>
+            <div style="background:rgba(0,242,254,0.05);border:1px solid rgba(0,242,254,0.2);border-radius:14px;padding:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+                <span style="color:var(--cyan-neon);font-weight:700;"><i class="fa-brands fa-whatsapp"></i> تفعيل إرسال إشعارات واتساب</span>
+                <label class="switch-modern"><input type="checkbox" id="toggleWhatsapp" checked><span class="slider-modern"></span></label>
+            </div>
+            <div style="display:flex;gap:12px;"><button onclick="saveNewAccount()" style="flex:1;background:var(--cyan-neon);color:#090d16;border:none;padding:12px;border-radius:12px;font-weight:800;cursor:pointer;"><i class="fa-solid fa-floppy-disk"></i> حفظ</button><button onclick="switchPage('mainPage')" style="flex:1;background:transparent;border:1px solid var(--danger-border);color:var(--danger-color);padding:12px;border-radius:12px;font-weight:700;cursor:pointer;"><i class="fa-solid fa-xmark"></i> إلغاء</button></div>
+        </div>
+    </div>
+
+    <!-- كشف حساب -->
+    <div id="accountStatementPage" class="page">
+        <div class="filter-tabs">
+            <button class="tab-btn" onclick="filterEntries('day',this)">يومي</button><button class="tab-btn" onclick="filterEntries('week',this)">أسبوعي</button><button class="tab-btn" onclick="filterEntries('month',this)">شهري</button><button class="tab-btn" onclick="filterEntries('year',this)">سنوي</button><button class="tab-btn active" onclick="filterEntries('all',this)">الكل</button>
+        </div>
+        <button class="btn-item full-width" style="justify-content:center;background:var(--cyan-neon);color:#090d16;font-weight:800;border:none;margin-bottom:14px;" onclick="openAccountSearchPopup()"><i class="fa-solid fa-magnifying-glass"></i> بحث عن عميل</button>
+        <div id="statementList" style="text-align:center;padding:30px;color:var(--hint-color);">اختر حساباً لعرض كشف الحساب</div>
+        <button class="back-btn" onclick="switchPage('mainPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button>
+    </div>
+
+    <!-- إدارة الموظفين -->
+    <div id="staffManagementPage" class="page">
+        <div class="invoice-glass-card">
+            <h3 style="color:var(--cyan-neon);text-align:center;margin-top:0;font-size:16px;"><i class="fa-solid fa-users-gear"></i> إدارة الموظفين</h3>
+            <div id="staffForm" style="display:none;margin-bottom:14px;">
+                <label>اسم الموظف:</label><input type="text" id="staffName" placeholder="اسم الموظف" style="width:100%;border-radius:12px;padding:12px;margin-bottom:10px;">
+                <label>رقم الهاتف:</label><input type="tel" id="staffPhone" placeholder="77xxxxxxx" style="width:100%;border-radius:12px;padding:12px;margin-bottom:10px;">
+                <label>كلمة المرور:</label><input type="text" id="staffPassword" placeholder="كلمة المرور" style="width:100%;border-radius:12px;padding:12px;margin-bottom:10px;">
+                <button class="btn-item full-width" style="justify-content:center;background:var(--success-color);color:#fff;font-weight:800;border:none;" onclick="saveNewStaff()"><i class="fa-solid fa-floppy-disk"></i> حفظ</button>
+            </div>
+            <button class="btn-item full-width" style="justify-content:center;background:var(--cyan-neon);color:#090d16;font-weight:800;border:none;margin-bottom:14px;" onclick="toggleStaffForm()"><i class="fa-solid fa-plus"></i> إضافة موظف</button>
+            <div id="staffCredentialsDisplay" style="display:none;background:rgba(0,242,254,0.08);border:1px dashed var(--cyan-neon);border-radius:12px;padding:14px;margin-top:10px;font-size:12px;color:#fff;"></div>
+        </div>
+        <button class="back-btn" onclick="switchPage('mainPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button>
+    </div>
+
+    <!-- الحوالة المالية -->
+    <div id="moneyTransferPage" class="page">
+        <div class="invoice-glass-card" style="position:relative;">
+            <button onclick="switchPage('servicesPage')" style="position:absolute;top:10px;right:12px;background:transparent;border:none;color:var(--hint-color);font-size:20px;cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+            <h3 style="color:var(--cyan-neon);text-align:center;margin-top:0;font-size:16px;"><i class="fa-solid fa-money-bill-wave"></i> حوالة مالية</h3>
+            <div style="display:flex;gap:8px;margin-bottom:14px;">
+                <button id="transferReceiveBtn" class="quick-tab active" style="flex:1;" onclick="setTransferMode('receive',this)"><i class="fa-solid fa-circle-down"></i> استلام</button>
+                <button id="transferSendBtn" class="quick-tab" style="flex:1;" onclick="setTransferMode('send',this)"><i class="fa-solid fa-circle-up"></i> إرسال</button>
+            </div>
+            <div class="form-grid">
+                <div><label><i class="fa-solid fa-user"></i> الحساب</label><select onfocus="openAccountSearchPopup()"><option>اختر الحساب</option></select></div>
+                <div><label><i class="fa-solid fa-building-columns"></i> الصندوق</label><select><option>الصندوق الرئيسي</option></select></div>
+                <div><label>المستلم</label><input type="text" placeholder="اسم المستلم"></div>
+                <div><label>المرسل</label><input type="text" placeholder="اسم المرسل"></div>
+                <div><label>المبلغ</label><input type="number" placeholder="0.00"></div>
+                <div><label>العملة</label><select onclick="openCurrencyPopup(this)"><option>يمني</option><option>سعودي</option><option>دولار</option></select></div>
+                <div><label>التاريخ</label><input type="datetime-local" style="color:#fff;"></div>
+                <div><label>شركة التحويل</label><input type="text" id="transferCompany" placeholder="اسم الشركة"></div>
+                <div><label>رقم الحوالة</label><input type="text" placeholder="رقم الحوالة"></div>
+                <div id="commissionField" style="display:none;"><label>العمولة</label><input type="number" placeholder="0.00"></div>
+                <div class="full-width"><label>البيان</label><textarea id="transferStatement" placeholder="بيان الحوالة..." style="height:60px;resize:none;"></textarea></div>
+            </div>
+            <button class="btn-item full-width" style="justify-content:center;background:var(--cyan-neon);color:#090d16;font-weight:800;border:none;margin-top:12px;" onclick="showToastAndSave('حوالة')"><i class="fa-solid fa-floppy-disk"></i> ترحيل</button>
+        </div>
+    </div>
+
+    <!-- فاتورة مبيعات -->
+    <div id="salesInvoicePage" class="page">
+        <div class="invoice-glass-card">
+            <h3 style="color:var(--cyan-neon);text-align:center;margin-top:0;font-size:16px;"><i class="fa-solid fa-cart-shopping"></i> فاتورة مبيعات</h3>
+            <div class="form-grid">
+                <div class="full-width"><label><i class="fa-solid fa-building-columns"></i> الصندوق:</label><select><option>الصندوق الرئيسي</option></select></div>
+                <div class="full-width"><label><i class="fa-solid fa-barcode"></i> باركود:</label><div style="display:flex;gap:8px;"><input type="text" placeholder="امسح الباركود..." style="flex:1;"><button onclick="openCamera()" style="background:transparent;border:1px solid var(--border-light);border-radius:10px;padding:0 14px;color:#fff;"><i class="fa-solid fa-camera"></i></button></div></div>
+                <div class="full-width"><label><i class="fa-solid fa-user"></i> العميل:</label><select><option value="cash">عميل نقدي</option></select></div>
+                <div class="full-width"><label><i class="fa-solid fa-coins"></i> العملة:</label><select onclick="openCurrencyPopup(this)"><option>يمني</option><option>سعودي</option><option>دولار</option></select></div>
+                <div><label>الكمية</label><input type="number" value="1"></div>
+                <div><label>السعر</label><input type="number" placeholder="0.00"></div>
+                <div class="full-width"><label>الخصم</label><input type="number" placeholder="0.00"></div>
+                <div class="full-width"><label>الإجمالي:</label><div style="font-size:20px;font-weight:800;color:var(--cyan-neon);">0.00</div></div>
+            </div>
+            <div class="invoice-triple-actions"><button onclick="exportInvoicePDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button><button onclick="printInvoice()"><i class="fa-solid fa-print"></i> طباعة</button><button onclick="saveInvoicePNG()"><i class="fa-solid fa-image"></i> PNG</button></div>
+        </div>
+        <button class="back-btn" onclick="switchPage('servicesPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button>
+    </div>
+
+    <!-- باقي الصفحات المختصرة -->
+    <div id="receiptVoucherPage" class="page"><div class="invoice-glass-card"><h3 style="color:var(--cyan-neon);"><i class="fa-solid fa-money-check-dollar"></i> سند قبض</h3><div class="form-grid"><div class="full-width"><label>الصندوق:</label><select><option>الصندوق الرئيسي</option></select></div><div><label>الرقم:</label><input type="text" value="#REC" readonly></div><div><label>التاريخ:</label><input type="datetime-local" style="color:#fff;"></div><div class="full-width"><label>الحساب:</label><select onfocus="openAccountSearchPopup()"><option>اختر الحساب</option></select></div><div><label>المبلغ:</label><input type="number" placeholder="0.00"></div><div><label>العملة:</label><select onclick="openCurrencyPopup(this)"><option>يمني</option><option>سعودي</option><option>دولار</option></select></div><div class="full-width"><label>البيان:</label><textarea style="height:60px;resize:none;"></textarea></div></div><button class="btn-item full-width" style="justify-content:center;background:var(--cyan-neon);color:#090d16;font-weight:800;border:none;margin-top:12px;" onclick="showToastAndSave('سند قبض')"><i class="fa-solid fa-floppy-disk"></i> ترحيل</button></div><button class="back-btn" onclick="switchPage('servicesPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button></div>
+    <div id="directoryPage" class="page"><div class="invoice-glass-card"><h3 style="color:var(--cyan-neon);"><i class="fa-solid fa-address-book"></i> الحسابات</h3><div style="display:flex;gap:8px;margin-bottom:10px;"><input type="text" class="popup-search" placeholder="🔎 بحث..." oninput="filterDirectory(this.value)" style="flex:1;"><button onclick="openAccountSearchPopup()" style="background:var(--cyan-neon);border:none;border-radius:10px;padding:10px 14px;color:#000;font-weight:700;cursor:pointer;"><i class="fa-solid fa-plus"></i></button></div><div id="directoryList"></div></div><button class="back-btn" onclick="switchPage('mainPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button></div>
+    <div id="reportsPage" class="page"><div class="invoice-glass-card"><h3 style="color:var(--cyan-neon);"><i class="fa-solid fa-chart-pie"></i> التقارير والإحصائيات</h3></div><button class="back-btn" onclick="switchPage('servicesPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button></div>
+    <div id="itemsPage" class="page"><div class="invoice-glass-card"><h3 style="color:var(--cyan-neon);"><i class="fa-solid fa-tags"></i> إدارة الأصناف</h3></div><button class="back-btn" onclick="switchPage('servicesPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button></div>
+    <div id="warehousesPage" class="page"><div class="invoice-glass-card"><h3 style="color:var(--cyan-neon);"><i class="fa-solid fa-warehouse"></i> المخازن والمستودعات</h3></div><button class="back-btn" onclick="switchPage('servicesPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button></div>
+    <div id="debtFollowupPage" class="page"><div class="invoice-glass-card"><h3 style="color:var(--cyan-neon);"><i class="fa-solid fa-chart-line"></i> متابعة وجدولة الديون</h3></div><button class="back-btn" onclick="switchPage('servicesPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button></div>
+    <div id="editProfilePage" class="page"><div class="invoice-glass-card"><h3 style="color:var(--cyan-neon);"><i class="fa-solid fa-user-pen"></i> تعديل البيانات</h3></div><button class="back-btn" onclick="switchPage('mainPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button></div>
+    <div id="changePasswordPage" class="page"><div class="invoice-glass-card"><h3 style="color:var(--cyan-neon);"><i class="fa-solid fa-lock"></i> تغيير كلمة السر</h3></div><button class="back-btn" onclick="switchPage('mainPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button></div>
+    <div id="mainCurrencyPage" class="page"><div class="invoice-glass-card"><h3 style="color:var(--cyan-neon);"><i class="fa-solid fa-coins"></i> العملة الرئيسية</h3><select id="mainCurrencySelect" style="width:100%;border-radius:12px;padding:12px;margin-bottom:14px;" onchange="setMainCurrency(this.value)"><option value="YER" selected>يمني</option><option value="SAR">سعودي</option><option value="USD">دولار</option></select><div class="currency-showcase"><div class="currency-note yer">YER</div><div class="currency-note sar">SAR</div><div class="currency-note usd">USD</div></div></div><button class="back-btn" onclick="switchPage('mainPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button></div>
+    <div id="notificationsPage" class="page"><div class="invoice-glass-card"><h3 style="color:var(--cyan-neon);"><i class="fa-solid fa-bell"></i> الإشعارات</h3></div><button class="back-btn" onclick="switchPage('mainPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button></div>
+    <div id="generalSettingsPage" class="page"><div class="invoice-glass-card"><h3 style="color:var(--cyan-neon);"><i class="fa-solid fa-sliders"></i> الإعدادات العامة</h3></div><button class="back-btn" onclick="switchPage('mainPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button></div>
+    <div id="redeemPointsPage" class="page"><div class="invoice-glass-card"><h3 style="color:var(--cyan-neon);"><i class="fa-solid fa-gift"></i> استبدال النقاط</h3></div><button class="back-btn" onclick="switchPage('mainPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button></div>
+    <div id="referralPage" class="page"><div class="invoice-glass-card"><h3 style="color:var(--cyan-neon);"><i class="fa-solid fa-link"></i> رابط الإحالة</h3></div><button class="back-btn" onclick="switchPage('mainPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button></div>
+    <div id="controlPanelPage" class="page"><div class="invoice-glass-card"><h3 style="color:var(--cyan-neon);"><i class="fa-solid fa-mobile-screen-button"></i> لوحة التحكم</h3></div><button class="back-btn" onclick="switchPage('mainPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button></div>
+    <div id="editBoxPage" class="page"><div class="invoice-glass-card"><h3 style="color:var(--cyan-neon);"><i class="fa-solid fa-pen-to-square"></i> تعديل الصندوق</h3></div><button class="back-btn" onclick="switchPage('boxesPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button></div>
+    <div id="transferBoxPage" class="page"><div class="invoice-glass-card"><h3 style="color:var(--cyan-neon);"><i class="fa-solid fa-shuffle"></i> تحويل بين الصناديق</h3></div><button class="back-btn" onclick="switchPage('boxesPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button></div>
+    <div id="exchangeBoxPage" class="page"><div class="invoice-glass-card"><h3 style="color:var(--cyan-neon);"><i class="fa-solid fa-money-bill-transfer"></i> مصارفة الصناديق</h3></div><button class="back-btn" onclick="switchPage('boxesPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button></div>
+    <div id="addBoxPage" class="page"><div class="invoice-glass-card"><h3 style="color:var(--cyan-neon);"><i class="fa-solid fa-plus"></i> إضافة صندوق</h3></div><button class="back-btn" onclick="switchPage('boxesPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button></div>
+    <div id="whatsappSettingsPage" class="page">
+        <div class="invoice-glass-card">
+            <h3 style="color:var(--cyan-neon);text-align:center;margin-top:0;font-size:16px;"><i class="fa-brands fa-whatsapp"></i> إعدادات واتساب</h3>
+            <div style="background:rgba(0,242,254,0.06);border:1px solid rgba(0,242,254,0.2);border-radius:12px;padding:12px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;">
+                <span>حالة الاتصال:</span><span id="whatsappStatusText">جاري الفحص...</span>
+                <button onclick="checkWhatsAppStatus()" style="background:transparent;border:1px solid var(--cyan-neon);border-radius:8px;padding:6px 12px;color:var(--cyan-neon);cursor:pointer;"><i class="fa-solid fa-rotate"></i></button>
+            </div>
+            <div class="permission-item"><span>إشعار قيد جديد</span><label class="switch-modern"><input type="checkbox" id="notifyNewEntry" checked onchange="saveWhatsAppSettings()"><span class="slider-modern"></span></label></div>
+            <div class="permission-item"><span>إشعار تعديل قيد</span><label class="switch-modern"><input type="checkbox" id="notifyEditEntry" checked onchange="saveWhatsAppSettings()"><span class="slider-modern"></span></label></div>
+            <div class="permission-item"><span>إشعار حذف قيد</span><label class="switch-modern"><input type="checkbox" id="notifyDeleteEntry" checked onchange="saveWhatsAppSettings()"><span class="slider-modern"></span></label></div>
+            <div class="permission-item"><span>إشعار فاتورة</span><label class="switch-modern"><input type="checkbox" id="notifyInvoice" checked onchange="saveWhatsAppSettings()"><span class="slider-modern"></span></label></div>
+            <div class="permission-item"><span>إشعار مصارفة</span><label class="switch-modern"><input type="checkbox" id="notifyExchange" checked onchange="saveWhatsAppSettings()"><span class="slider-modern"></span></label></div>
+            <button class="btn-item full-width" style="justify-content:center;background:#25D366;color:#fff;font-weight:800;border:none;margin-top:12px;" onclick="showWhatsAppQR()"><i class="fa-brands fa-whatsapp"></i> ربط الواتساب</button>
+        </div>
+        <button class="back-btn" onclick="switchPage('mainPage')"><i class="fa-solid fa-arrow-right"></i> رجوع</button>
+    </div>
+
+    <div class="footer-credit">برمجة وتطوير <span>يونس الكدهي | 775154169</span></div>
+</div>
+
+<!-- ============ SCRIPTS (الجزء الرابع) ============ -->    <script>
+    var tg = window.Telegram ? window.Telegram.WebApp : null;
+    if (tg) { try { tg.ready(); tg.expand(); } catch(e) {} }
+
+    // ============ GLOBAL VARIABLES ============
+    var pendingDeleteTarget = null;
+    var pendingDeleteType = 'entry'; // 'entry' or 'account'
+    var mockEntries = [];
+    var mockAccounts = [];
+    var mainCurrency = 'YER';
+    var entryType = 'credit';
+    var transferMode = 'receive';
+    var appLogo = null;
+    var exchangeMode = 'client';
+    var exchangeDirection = 'buy';
+    var exchangeDirectionBox = 'buy';
+    var currentUser = null;
+    var isLoginMode = false;
+    var loginRole = 'admin';
+    var editingEntryId = null;
+    var invoiceType = 'electricity';
+
+    const WHATSAPP_SERVER = 'https://eltizam-pro-whatsapp.onrender.com';
+    var whatsappSettings = {
+        notifyNewEntry: true,
+        notifyEditEntry: true,
+        notifyDeleteEntry: true,
+        notifyInvoice: true,
+        notifyExchange: true
+    };
+    var lastSuccessData = null;
+    var successModalCallback = null;
+
+    // ============ WHATSAPP SETTINGS ============
+    function loadWhatsAppSettings() {
+        var saved = localStorage.getItem('whatsappSettings');
+        if (saved) { try { whatsappSettings = JSON.parse(saved); } catch(e) {} }
+        applyWhatsAppSettingsToUI();
+    }
+
+    function saveWhatsAppSettings() {
+        var elNew = document.getElementById('notifyNewEntry');
+        var elEdit = document.getElementById('notifyEditEntry');
+        var elDel = document.getElementById('notifyDeleteEntry');
+        var elInv = document.getElementById('notifyInvoice');
+        var elExch = document.getElementById('notifyExchange');
+        if(elNew) whatsappSettings.notifyNewEntry = elNew.checked;
+        if(elEdit) whatsappSettings.notifyEditEntry = elEdit.checked;
+        if(elDel) whatsappSettings.notifyDeleteEntry = elDel.checked;
+        if(elInv) whatsappSettings.notifyInvoice = elInv.checked;
+        if(elExch) whatsappSettings.notifyExchange = elExch.checked;
+        localStorage.setItem('whatsappSettings', JSON.stringify(whatsappSettings));
+    }
+
+    function applyWhatsAppSettingsToUI() {
+        var map = {
+            'notifyNewEntry': 'notifyNewEntry',
+            'notifyEditEntry': 'notifyEditEntry',
+            'notifyDeleteEntry': 'notifyDeleteEntry',
+            'notifyInvoice': 'notifyInvoice',
+            'notifyExchange': 'notifyExchange'
+        };
+        for (var id in map) {
+            var el = document.getElementById(id);
+            if (el) el.checked = whatsappSettings[map[id]] !== false;
+        }
+    }
+
+    async function checkWhatsAppStatus() {
+        var statusEl = document.getElementById('whatsappStatusText');
+        if (!statusEl) return;
+        statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الفحص...';
+        try {
+            var response = await fetch(WHATSAPP_SERVER + '/whatsapp/status');
+            var data = await response.json();
+            statusEl.innerHTML = data.connected ?
+                '<span style="color:#10b981;"><i class="fa-solid fa-circle-check"></i> متصل</span>' :
+                '<span style="color:#ef4444;"><i class="fa-solid fa-circle-xmark"></i> غير متصل</span>';
+        } catch(e) {
+            statusEl.innerHTML = '<span style="color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> غير متصل</span>';
+        }
+    }
+
+    function showWhatsAppQR() {
+        document.getElementById('qrPopupOverlay').classList.add('show');
+        var img = document.getElementById('qrPopupImage');
+        img.src = WHATSAPP_SERVER + '/whatsapp/qr';
+        img.onerror = function() {
+            img.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="%23fff"/><text x="30" y="100" font-size="14" fill="%23000">عذراً، تعذر تحميل الباركود</text></svg>';
+        };
+    }
+
+    function closeQrPopup() { document.getElementById('qrPopupOverlay').classList.remove('show'); }
+
+    async function sendWhatsApp(phone, message) {
+        if (!phone || !message) return;
+        try {
+            await fetch(WHATSAPP_SERVER + '/whatsapp/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone: phone, message: message })
+            });
+        } catch(e) { console.log('WhatsApp send error:', e); }
+    }
+
+    function formatWhatsAppMessage(type, data) {
+        var msg = '';
+        switch(type) {
+            case 'new_entry':
+                msg = '📝 *قيد جديد*\n👤 الحساب: ' + (data.account||'') + '\n💰 المبلغ: ' + (data.amount||'') + ' ' + (data.currency||'') + '\n🧾 النوع: ' + (data.type==='credit'?'له':'عليه') + '\n📄 البيان: ' + (data.statement||'') + '\n📅 التاريخ: ' + (data.dateTime||'');
+                break;
+            case 'edit_entry':
+                msg = '✏️ *تم تعديل قيد*\n👤 الحساب: ' + (data.account||'') + '\n💰 المبلغ: ' + (data.oldAmount||'') + ' ➜ ' + (data.newAmount||'') + ' ' + (data.currency||'') + '\n📄 البيان: ' + (data.statement||'') + '\n📅 التاريخ: ' + (data.dateTime||'');
+                break;
+            case 'delete_entry':
+                msg = '🗑️ *تم حذف قيد*\n👤 الحساب: ' + (data.account||'') + '\n💰 المبلغ: ' + (data.amount||'') + ' ' + (data.currency||'') + '\n📄 البيان: ' + (data.statement||'') + '\n💵 الرصيد الجديد: ' + (data.newBalance||'') + '\n📅 التاريخ: ' + (data.dateTime||'');
+                break;
+            case 'invoice':
+                msg = '🧾 *فاتورة ' + (data.serviceType||'') + '*\n👤 المشترك: ' + (data.customer||'') + '\n⚡ القراءة: ' + (data.reading||'') + '\n💵 المبلغ: ' + (data.amount||'') + ' ' + (data.currency||'') + '\n📌 النوع: ' + (data.type==='credit'?'عليكم':'لكم') + '\n📅 التاريخ: ' + (data.dateTime||'');
+                break;
+            case 'exchange':
+                msg = '💱 *مصارفة*\n👤 العميل: ' + (data.client||'') + '\n💵 المبلغ: ' + (data.amount||'') + ' ' + (data.fromCurrency||'') + '\n💱 السعر: ' + (data.rate||'') + '\n💰 الناتج: ' + (data.result||'') + ' ' + (data.toCurrency||'') + '\n📅 التاريخ: ' + (data.dateTime||'');
+                break;
+        }
+        return msg;
+    }
+
+    function getAccountPhone(name) {
+        var acc = mockAccounts.find(function(a) { return a.name === name; });
+        return acc ? acc.phone : '';
+    }
+
+    function getAccountBalance(accountName, currency) {
+        var totalCredit = 0, totalDebt = 0;
+        mockEntries.forEach(function(e) {
+            if (e.account === accountName && e.currency === currency) {
+                if (e.type === 'credit') totalCredit += e.amount;
+                else totalDebt += e.amount;
+            }
+        });
+        return totalCredit - totalDebt;
+    }
+
+    // ============ SUCCESS MODAL ============
+    function showSuccessModal(data, callbackType) {
+        lastSuccessData = data;
+        var body = document.getElementById('successModalBody');
+        var repeatBtn = document.getElementById('successRepeatBtn');
+        var html = '';
+        html += '<div class="success-detail-row"><i class="fa-solid fa-user"></i><span class="sd-label">الحساب:</span><span class="sd-value">' + (data.account||'-') + '</span></div>';
+        html += '<div class="success-detail-row"><i class="fa-solid fa-money-bill"></i><span class="sd-label">المبلغ والعملة:</span><span class="sd-value">' + (data.amount||'') + ' ' + (data.currency||'') + '</span></div>';
+        html += '<div class="success-detail-row"><i class="fa-solid fa-align-left"></i><span class="sd-label">البيان:</span><span class="sd-value">' + (data.statement||'-') + '</span></div>';
+        var newBal = getAccountBalance(data.account, data.currency);
+        html += '<div class="success-detail-row"><i class="fa-solid fa-scale-balanced"></i><span class="sd-label">الرصيد الجديد:</span><span class="sd-value" style="color:var(--cyan-neon);">' + newBal.toLocaleString() + ' ' + (data.currency||'') + '</span></div>';
+        body.innerHTML = html;
+
+        if (repeatBtn) {
+            var repeatLabel = data.repeatLabel || '+ قيد جديد';
+            repeatBtn.innerHTML = '<i class="fa-solid fa-plus"></i> ' + repeatLabel;
+            repeatBtn.onclick = data.repeatAction || successModalNewEntry;
+        }
+
+        document.getElementById('successModalOverlay').classList.add('show');
+        successModalCallback = callbackType || null;
+    }
+
+    function hideSuccessModal() {
+        document.getElementById('successModalOverlay').classList.remove('show');
+        lastSuccessData = null;
+        successModalCallback = null;
+    }
+
+    function successModalWhatsApp() {
+        if (!lastSuccessData) return;
+        var phone = getAccountPhone(lastSuccessData.account);
+        var msg = formatWhatsAppMessage(lastSuccessData.whatsappType||'new_entry', lastSuccessData);
+        sendWhatsApp(phone, msg);
+        showToast('📱 تم إرسال التفاصيل عبر الواتساب');
+    }
+
+    function successModalPrint() {
+        var choice = confirm('اختر نوع الطباعة:\n[موافق] = طباعة حرارية 80mm\n[إلغاء] = تصدير PDF');
+        if (choice) { showToast('🖨️ جاري الطباعة الحرارية...'); window.print(); }
+        else { exportInvoicePDF(); }
+    }
+
+    function successModalNewEntry() {
+        var amountEl = document.getElementById('entryAmount');
+        var statementEl = document.getElementById('entryStatement');
+        if (amountEl) amountEl.value = '';
+        if (statementEl) statementEl.value = '';
+        var fb = document.getElementById('amountFeedback'); if (fb) fb.innerText = '';
+        hideSuccessModal();
+        switchPage('addEntryPage');
+        if (editingEntryId) { editingEntryId = null; clearEditMode(); }
+    }
+
+    function successModalExit() {
+        var amountEl = document.getElementById('entryAmount');
+        var statementEl = document.getElementById('entryStatement');
+        if (amountEl) amountEl.value = '';
+        if (statementEl) statementEl.value = '';
+        var entryAcc = document.getElementById('entryAccount'); if (entryAcc) entryAcc.selectedIndex = 0;
+        var entryBox = document.getElementById('entryBox'); if (entryBox) entryBox.selectedIndex = 0;
+        var entryCur = document.getElementById('entryCurrency'); if (entryCur) entryCur.value = 'YER';
+        var fb = document.getElementById('amountFeedback'); if (fb) fb.innerText = '';
+        editingEntryId = null;
+        clearEditMode();
+        hideSuccessModal();
+        switchPage('mainPage');
+    }
+
+    function clearEditMode() {
+        editingEntryId = null;
+        var titleEl = document.querySelector('#addEntryContent h3');
+        if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> إضافة قيد';
+        var saveBtns = document.querySelectorAll('#addEntryContent .btn-item');
+        saveBtns.forEach(function(b) { b.style.display = 'none'; });
+        var directBtns = document.querySelectorAll('#addEntryContent button[onclick^="saveNewEntryDirect"]');
+        directBtns.forEach(function(b) { b.style.display = ''; });
+    }
+
+    // ============ LOGIN SYSTEM ============
+    function toggleLoginMode() {
+        isLoginMode = !isLoginMode;
+        document.getElementById('loginRoleContainer').classList.toggle('login-hidden', isLoginMode);
+        document.getElementById('loginTitle').innerText = isLoginMode ? 'تسجيل الدخول' : (loginRole==='admin'?'إنشاء حساب مدير':'إنشاء حساب موظف');
+        document.getElementById('loginToggleText').innerText = isLoginMode ? 'إنشاء حساب جديد؟' : 'هل لديك حساب مسبقاً؟ سجل دخولك';
+        document.getElementById('loginName').classList.toggle('login-hidden', isLoginMode);
+        document.getElementById('loginConfirmPassword').classList.toggle('login-hidden', isLoginMode);
+        if (isLoginMode) { document.getElementById('loginName').value = ''; document.getElementById('loginConfirmPassword').value = ''; }
+    }
+
+    function setLoginRole(role) {
+        loginRole = role;
+        document.getElementById('btn-admin').classList.toggle('active', role==='admin');
+        document.getElementById('btn-employee').classList.toggle('active', role==='employee');
+        if (!isLoginMode) document.getElementById('loginTitle').innerText = role==='admin'?'إنشاء حساب مدير':'إنشاء حساب موظف';
+    }
+
+    function handleLoginSubmit() {
+        var name = document.getElementById('loginName').value.trim();
+        var phone = document.getElementById('loginPhone').value.trim();
+        var password = document.getElementById('loginPassword').value;
+        var confirmPassword = document.getElementById('loginConfirmPassword').value;
+        if (isLoginMode) {
+            if (!phone || !password) { shakeElement(document.getElementById('loginPhone')); showCustomAlert('⚠️ خطأ','يرجى إدخال رقم الهاتف وكلمة المرور'); return; }
+            var stored = localStorage.getItem('eltizam_users');
+            var users = stored ? JSON.parse(stored) : [];
+            var user = users.find(function(u) { return u.phone === phone && u.password === password; });
+            if (user) { currentUser = user; localStorage.setItem('eltizam_currentUser', JSON.stringify(user)); showMainApp(); }
+            else { shakeElement(document.getElementById('loginPhone')); showCustomAlert('⚠️ خطأ','رقم الهاتف أو كلمة المرور غير صحيحة'); }
+        } else {
+            if (!name) { shakeElement(document.getElementById('loginName')); showCustomAlert('⚠️ خطأ','يرجى إدخال الاسم الكامل'); return; }
+            if (!phone) { shakeElement(document.getElementById('loginPhone')); showCustomAlert('⚠️ خطأ','يرجى إدخال رقم الهاتف'); return; }
+            if (!password) { shakeElement(document.getElementById('loginPassword')); showCustomAlert('⚠️ خطأ','يرجى إدخال كلمة المرور'); return; }
+            if (password !== confirmPassword) { shakeElement(document.getElementById('loginConfirmPassword')); showCustomAlert('⚠️ خطأ','تأكيد كلمة المرور ليس مطابقاً'); return; }
+            var stored = localStorage.getItem('eltizam_users');
+            var users = stored ? JSON.parse(stored) : [];
+            if (users.find(function(u) { return u.phone === phone; })) { shakeElement(document.getElementById('loginPhone')); showCustomAlert('⚠️ خطأ','الرقم مسجل في حساب آخر'); return; }
+            var newUser = { name: name, phone: phone, password: password, role: loginRole };
+            users.push(newUser);
+            localStorage.setItem('eltizam_users', JSON.stringify(users));
+            currentUser = newUser;
+            localStorage.setItem('eltizam_currentUser', JSON.stringify(newUser));
+            showMainApp();
+        }
+    }
+
+    function shakeElement(el) { if(!el) return; el.classList.add('login-shake'); setTimeout(function(){ el.classList.remove('login-shake'); }, 500); }
+
+    function showMainApp() {
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('mainAppContainer').style.display = 'block';
+        document.getElementById('displayUserName').innerText = currentUser ? currentUser.name : 'المدير';
+        updateAllDateFields(); renderEntriesList(); updateEntriesStats(); updateStats();
+        switchQuickTab('addEntryContent', document.querySelector('#addEntryPage .quick-tab.active'));
+        switchExchangeMode('client', document.getElementById('exchangeClientTab'));
+    }
+
+    function logoutSession() {
+        localStorage.removeItem('eltizam_currentUser');
+        currentUser = null;
+        document.getElementById('loginPage').style.display = 'flex';
+        document.getElementById('mainAppContainer').style.display = 'none';
+        document.getElementById('loginPhone').value = ''; document.getElementById('loginPassword').value = '';
+        document.getElementById('loginName').value = ''; document.getElementById('loginConfirmPassword').value = '';
+        isLoginMode = false;
+        document.getElementById('loginRoleContainer').classList.remove('login-hidden');
+        document.getElementById('loginTitle').innerText = 'إنشاء حساب مدير';
+        document.getElementById('loginToggleText').innerText = 'هل لديك حساب مسبقاً؟ سجل دخولك';
+        document.getElementById('loginName').classList.remove('login-hidden');
+        document.getElementById('loginConfirmPassword').classList.remove('login-hidden');
+        showCustomAlert('👋 تسجيل خروج','تم تسجيل الخروج بنجاح.');
+    }
+
+    // ============ UTILITY FUNCTIONS ============
+    function getCurrentDateTime() {
+        var now = new Date();
+        return now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' '+
+               String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
+    }
+
+    function updateAllDateFields() {
+        var dt = getCurrentDateTime();
+        var el = document.getElementById('entryDateTime'); if(el && !el.value) el.value = dt.replace(' ','T');
+        var dFrom = document.getElementById('dateFrom'); if(dFrom && !dFrom.value) dFrom.value = new Date().toISOString().split('T')[0];
+        var dTo = document.getElementById('dateTo'); if(dTo && !dTo.value) dTo.value = new Date().toISOString().split('T')[0];
+        var uFrom = document.getElementById('utilityDateFrom'); if(uFrom && !uFrom.value) uFrom.value = new Date().toISOString().split('T')[0];
+        var uTo = document.getElementById('utilityDateTo'); if(uTo && !uTo.value) uTo.value = new Date().toISOString().split('T')[0];
+        updateStats();
+    }
+
+    function updateStats() {
+        var tc=0, td=0;
+        mockEntries.forEach(function(e) { if(e.type==='credit') tc+=e.amount; else td+=e.amount; });
+        var sa=document.getElementById('statAccounts'); if(sa) sa.innerText=mockAccounts.length;
+        var stl=document.getElementById('statTotalLakom'); if(stl) stl.innerText=tc.toLocaleString()+' '+mainCurrency;
+        var sta=document.getElementById('statTotalAlaykom'); if(sta) sta.innerText=td.toLocaleString();
+        var snb=document.getElementById('statNetBalance'); if(snb) snb.innerText=(tc-td).toLocaleString();
+    }
+
+    function showCustomAlert(title, text) {
+        document.getElementById('alertTitle').innerText=title;
+        document.getElementById('alertMessage').innerText=text;
+        document.getElementById('customAlert').style.display='block';
+    }
+    function closeCustomAlert() { document.getElementById('customAlert').style.display='none'; }
+
+    function showToast(message) {
+        var toast=document.getElementById('toastNotification');
+        toast.innerText=message||'✨ تمت العملية بنجاح';
+        toast.classList.add('show');
+        setTimeout(function(){ toast.classList.remove('show'); },2500);
+    }
+
+    function showToastAndSave(type) {
+        showToast('✨ تم حفظ وترحيل '+type+' بنجاح');
+    }
+
+    function openConfirmDialog(targetId, type, message) {
+        pendingDeleteTarget = targetId;
+        pendingDeleteType = type || 'entry';
+        document.getElementById('confirmMessage').innerText = message || 'هل أنت متأكد من رغبتك في الحذف؟';
+        document.getElementById('confirmDialog').classList.add('show');
+    }
+    function closeConfirmDialog() { document.getElementById('confirmDialog').classList.remove('show'); pendingDeleteTarget=null; }
+    function executeDelete() {
+        if (!pendingDeleteTarget) { closeConfirmDialog(); return; }
+        if (pendingDeleteType === 'entry') {
+            var entry = mockEntries.find(function(e) { return e.id === pendingDeleteTarget; });
+            if (entry && whatsappSettings.notifyDeleteEntry) {
+                var phone = getAccountPhone(entry.account);
+                var newBal = getAccountBalance(entry.account, entry.currency);
+                var msg = formatWhatsAppMessage('delete_entry', {
+                    account: entry.account, amount: entry.amount, currency: entry.currency,
+                    statement: entry.statement, dateTime: getCurrentDateTime(), newBalance: newBal.toLocaleString() + ' ' + entry.currency
+                });
+                sendWhatsApp(phone, msg);
+            }
+            mockEntries = mockEntries.filter(function(e) { return e.id !== pendingDeleteTarget; });
+            renderEntriesList(); updateEntriesStats(); updateStats();
+            showToast('🗑️ تم حذف القيد بنجاح');
+        } else if (pendingDeleteType === 'account') {
+            var accName = pendingDeleteTarget;
+            mockAccounts = mockAccounts.filter(function(a) { return a.name !== accName; });
+            mockEntries = mockEntries.filter(function(e) { return e.account !== accName; });
+            renderEntriesList(); updateEntriesStats(); updateStats();
+            filterDirectory('');
+            showToast('🗑️ تم حذف الحساب بنجاح');
+        }
+        closeConfirmDialog();
+    }
+
+    function openAccountSearchPopup() {
+        document.getElementById('accountSearchPopup').classList.add('show');
+        document.getElementById('popupSearchInput').value = '';
+        renderPopupAccounts(mockAccounts);
+    }
+    function closeAccountSearchPopup() { document.getElementById('accountSearchPopup').classList.remove('show'); }
+    function filterAccountsPopup() {
+        var q = document.getElementById('popupSearchInput').value.toLowerCase();
+        var filtered = mockAccounts.filter(function(a) { return a.name.toLowerCase().includes(q) || a.phone.includes(q); });
+        renderPopupAccounts(filtered);
+    }
+    function resetAccountFilter() { document.getElementById('popupSearchInput').value=''; renderPopupAccounts(mockAccounts); }
+    function renderPopupAccounts(accounts) {
+        var container = document.getElementById('popupAccountList');
+        if (!accounts.length) { container.innerHTML='<div style="text-align:center;padding:16px;color:var(--hint-color);">لا توجد حسابات</div>'; return; }
+        var html = '';
+        accounts.forEach(function(acc) {
+            html += '<div class="account-card-mini" onclick="selectAccountFromPopup(\''+acc.name+'\')"><div class="acc-name"><i class="fa-solid fa-user"></i> '+acc.name+'</div><div class="acc-balances">';
+            ['YER','SAR','USD'].forEach(function(c) {
+                var bal = acc.balances[c] || {type:'صفر',amount:0};
+                html += '<span>'+c+': '+bal.type+' '+bal.amount+'</span>';
+            });
+            html += '</div></div>';
+        });
+        container.innerHTML = html;
+    }
+    function selectAccountFromPopup(name) {
+        var cf = document.getElementById('customerNameNew'); if(cf) { cf.value = name; updateInvoicePrevReading(); }
+        var ea = document.getElementById('entryAccount'); if(ea) { for(var i=0;i<ea.options.length;i++){ if(ea.options[i].text.includes(name)){ea.selectedIndex=i;break;} } }
+        closeAccountSearchPopup();
+    }
+
+    function openCamera() {
+        if (tg && tg.showScanQrPopup) {
+            tg.showScanQrPopup({text:'وجه الكاميرا'}, function(result) {
+                var field = document.getElementById('currentReadingNew'); if(field) field.value = result;
+            });
+        } else { showCustomAlert('📷 الكاميرا','سيتم فتح الكاميرا في تطبيق تيليجرام'); }
+    }
+    function openContacts() {
+        if (tg && tg.requestContact) {
+            tg.requestContact(function(contact) { if(contact&&contact.phone_number) document.getElementById('accPhone').value=contact.phone_number; });
+        } else { showCustomAlert('📇 دليل الهاتف','اختر جهة اتصال'); document.getElementById('accPhone').value='777'+Math.floor(Math.random()*900000+100000); }
+    }
+
+    function updateInvoicePrevReading() {
+        var name = document.getElementById('customerNameNew').value;
+        var el = document.getElementById('prevReadingValue'); if(!el) return;
+        if (name && name.trim()) {
+            var lastInv = mockEntries.filter(function(e) { return e.account===name && (e.serviceType||'').length>0; });
+            el.innerText = lastInv.length ? lastInv[lastInv.length-1].reading : '0.0';
+        } else { el.innerText = '0.0'; }
+    }
+
+    function setInvoiceType(type, btn) {
+        invoiceType = type;
+        document.getElementById('elecTypeBtn').classList.toggle('active', type==='electricity');
+        document.getElementById('waterTypeBtn').classList.toggle('active', type==='water');
+    }
+
+    function saveNewInvoice() {
+        var customer = document.getElementById('customerNameNew').value;
+        var current = parseFloat(document.getElementById('currentReadingNew').value);
+        var prev = parseFloat(document.getElementById('prevReadingValue').innerText);
+        var currencyEl = document.querySelector('input[name="invoiceCurrencyNew"]:checked');
+        var curVal = currencyEl ? currencyEl.value : 'YER';
+        if (!customer) { showCustomAlert('⚠️ خطأ','يرجى إدخال اسم المشترك'); return; }
+        if (isNaN(current)) { showCustomAlert('⚠️ خطأ','يرجى إدخال القراءة الحالية'); return; }
+        if (current < prev) { showCustomAlert('⚠️ خطأ','القراءة الحالية لا يمكن أن تكون أقل من السابقة ('+prev+')'); return; }
+        var amount = (current - prev) * 10;
+        var entry = {
+            id: 'inv_'+Date.now(), dateTime: getCurrentDateTime(), account: customer,
+            currency: curVal, type: 'debit', amount: amount,
+            statement: 'فاتورة ' + (invoiceType==='electricity'?'كهرباء':'ماء'),
+            serviceType: invoiceType, reading: current
+        };
+        mockEntries.unshift(entry);
+        renderEntriesList(); updateEntriesStats(); updateStats();
+        if (whatsappSettings.notifyInvoice) {
+            var phone = getAccountPhone(customer);
+            sendWhatsApp(phone, formatWhatsAppMessage('invoice', {
+                customer: customer, serviceType: invoiceType, reading: current,
+                amount: amount, currency: curVal, type: 'debit', dateTime: getCurrentDateTime()
+            }));
+        }
+        showSuccessModal({
+            account: customer, amount: amount, currency: curVal,
+            statement: 'فاتورة ' + (invoiceType==='electricity'?'كهرباء':'ماء'),
+            newBalance: '', whatsappType: 'invoice', repeatLabel: '+ فاتورة أخرى',
+            repeatAction: function() { document.getElementById('customerNameNew').value=''; document.getElementById('currentReadingNew').value=''; document.getElementById('prevReadingValue').innerText='0.0'; hideSuccessModal(); switchPage('invoicePage'); }
+        }, 'exit');
+        document.getElementById('customerNameNew').value = '';
+        document.getElementById('currentReadingNew').value = '';
+        document.getElementById('prevReadingValue').innerText = '0.0';
+        showToast('✨ تم حفظ الفاتورة بنجاح');
+    }
+
+    function saveNewEntryDirect(type) {
+        entryType = type;
+        saveNewEntry();
+    }
+
+    function saveNewEntry() {
+        var accountSelect = document.getElementById('entryAccount');
+        var account = accountSelect.options[accountSelect.selectedIndex].text;
+        var amount = document.getElementById('entryAmount').value;
+        var statement = document.getElementById('entryStatement').value;
+        var currency = document.getElementById('entryCurrency').value;
+        var box = document.getElementById('entryBox').options[document.getElementById('entryBox').selectedIndex].text;
+        if (!account || account==='اختر الحساب') { showCustomAlert('⚠️ خطأ','يرجى اختيار الحساب'); return; }
+        if (!amount || parseFloat(amount)<=0) { showCustomAlert('⚠️ خطأ','يرجى إدخال مبلغ صحيح'); return; }
+
+        if (editingEntryId) {
+            var oldEntry = mockEntries.find(function(e) { return e.id === editingEntryId; });
+            if (oldEntry) {
+                var oldAmount = oldEntry.amount;
+                var oldBox = oldEntry.box;
+                oldEntry.account = account;
+                oldEntry.box = box;
+                oldEntry.currency = currency;
+                oldEntry.type = entryType;
+                oldEntry.amount = parseFloat(amount);
+                oldEntry.statement = statement || 'قيد محاسبي';
+                oldEntry.dateTime = getCurrentDateTime();
+
+                renderEntriesList(); updateEntriesStats(); updateStats();
+                var shouldNotify = (oldAmount !== parseFloat(amount) || oldEntry.account !== account);
+                if (shouldNotify && whatsappSettings.notifyEditEntry) {
+                    var phone = getAccountPhone(account);
+                    sendWhatsApp(phone, formatWhatsAppMessage('edit_entry', {
+                        account: account, oldAmount: oldAmount, newAmount: parseFloat(amount),
+                        currency: currency, statement: statement, dateTime: getCurrentDateTime()
+                    }));
+                }
+                showSuccessModal({
+                    account: account, amount: parseFloat(amount), currency: currency,
+                    statement: statement||'قيد محاسبي', newBalance: '', whatsappType: 'edit_entry'
+                }, 'exit');
+                showToast('✏️ تم تعديل القيد بنجاح');
+                editingEntryId = null;
+                clearEditMode();
+                document.getElementById('entryAmount').value = '';
+                document.getElementById('entryStatement').value = '';
+                return;
+            }
+        }
+
+        var entry = {
+            id: 'entry_'+Date.now(), dateTime: getCurrentDateTime(),
+            account: account, box: box, currency: currency,
+            type: entryType, amount: parseFloat(amount),
+            statement: statement || 'قيد محاسبي'
+        };
+        mockEntries.unshift(entry);
+        renderEntriesList(); updateEntriesStats(); updateStats();
+
+        if (whatsappSettings.notifyNewEntry) {
+            var phone = getAccountPhone(account);
+            sendWhatsApp(phone, formatWhatsAppMessage('new_entry', entry));
+        }
+
+        showSuccessModal({
+            account: account, amount: parseFloat(amount), currency: currency,
+            statement: statement||'قيد محاسبي', newBalance: '', whatsappType: 'new_entry'
+        }, 'new');
+
+        document.getElementById('entryAmount').value = '';
+        document.getElementById('entryStatement').value = '';
+        document.getElementById('amountFeedback').innerText = '';
+    }
+
+    function editEntry(id) {
+        var entry = mockEntries.find(function(e) { return e.id === id; });
+        if (!entry) return;
+        editingEntryId = id;
+        switchPage('addEntryPage');
+        switchQuickTab('addEntryContent', document.querySelector('#addEntryPage .quick-tab.active'));
+        setTimeout(function() {
+            var accSel = document.getElementById('entryAccount');
+            if (accSel) { for(var i=0;i<accSel.options.length;i++){ if(accSel.options[i].text===entry.account){accSel.selectedIndex=i;break;} } }
+            var boxSel = document.getElementById('entryBox'); if(boxSel) boxSel.value = 'main_box';
+            var curSel = document.getElementById('entryCurrency'); if(curSel) curSel.value = entry.currency;
+            var dtEl = document.getElementById('entryDateTime'); if(dtEl) dtEl.value = entry.dateTime.replace(' ','T');
+            document.getElementById('entryAmount').value = entry.amount;
+            document.getElementById('entryStatement').value = entry.statement;
+            setEntryType(entry.type, document.getElementById(entry.type==='credit'?'typeCreditBtn':'typeDebitBtn'));
+            var titleEl = document.querySelector('#addEntryContent h3');
+            if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> تعديل قيد';
+        }, 200);
+    }
+
+    function setEntryType(type, btn) {
+        entryType = type;
+        document.getElementById('typeCreditBtn').classList.remove('active');
+        document.getElementById('typeDebitBtn').classList.remove('active');
+        if (btn) btn.classList.add('active');
+    }
+
+    function setTransferMode(mode, btn) {
+        transferMode = mode;
+        document.getElementById('transferReceiveBtn').classList.remove('active');
+        document.getElementById('transferSendBtn').classList.remove('active');
+        if (btn) btn.classList.add('active');
+        var comm = document.getElementById('commissionField');
+        if (comm) comm.style.display = mode==='send'?'block':'none';
+    }
+
+    function switchExchangeMode(mode, btn) {
+        exchangeMode = mode;
+        document.getElementById('exchangeClientTab').classList.remove('active');
+        document.getElementById('exchangeBoxTab').classList.remove('active');
+        if (btn) btn.classList.add('active');
+        document.getElementById('exchangeClientContent').style.display = mode==='client'?'block':'none';
+        document.getElementById('exchangeBoxContent').style.display = mode==='box'?'block':'none';
+    }
+
+    function updateExchangeRemaining() {
+        var amt = parseFloat(document.getElementById('exAmount').value)||0;
+        var rate = parseFloat(document.getElementById('exRate').value)||0;
+        document.getElementById('exRemainingValueClient').innerText = (amt*rate).toFixed(2);
+    }
+    function updateExchangeRemainingBox() {
+        var amt = parseFloat(document.getElementById('exAmountBox').value)||0;
+        var rate = parseFloat(document.getElementById('exRateBox').value)||0;
+        document.getElementById('exRemainingValueBox').innerText = (amt*rate).toFixed(2);
+    }
+
+    function executeExchange(type) {
+        var client, from, to, amount, rate, result;
+        if (type==='client') {
+            var sel = document.getElementById('exClientSelect');
+            client = sel.options[sel.selectedIndex].text;
+            from = document.getElementById('exFromCurrency').value;
+            to = document.getElementById('exToCurrency').value;
+            amount = parseFloat(document.getElementById('exAmount').value);
+            rate = parseFloat(document.getElementById('exRate').value);
+            if (!client||client==='اختر العميل') { showCustomAlert('⚠️ خطأ','يرجى اختيار العميل'); return; }
+        } else {
+            from = document.getElementById('exFromCurrencyBox').value;
+            to = document.getElementById('exToCurrencyBox').value;
+            amount = parseFloat(document.getElementById('exAmountBox').value);
+            rate = parseFloat(document.getElementById('exRateBox').value);
+            client = 'صندوق';
+        }
+        if (!amount||amount<=0) { showCustomAlert('⚠️ خطأ','يرجى إدخال مبلغ صحيح'); return; }
+        if (!rate||rate<=0) { showCustomAlert('⚠️ خطأ','يرجى إدخال سعر الصرف'); return; }
+        result = amount * rate;
+        var entry = {
+            id: 'exch_'+Date.now(), dateTime: getCurrentDateTime(),
+            account: client, currency: to, type: 'credit', amount: result,
+            statement: 'مصارفة: '+amount+' '+from+' × '+rate+' = '+result+' '+to
+        };
+        mockEntries.unshift(entry);
+        renderEntriesList(); updateEntriesStats(); updateStats();
+        if (whatsappSettings.notifyExchange) {
+            var phone = getAccountPhone(client);
+            sendWhatsApp(phone, formatWhatsAppMessage('exchange', {
+                client:client, fromCurrency:from, toCurrency:to,
+                amount:amount, rate:rate, result:result, dateTime:getCurrentDateTime()
+            }));
+        }
+        showSuccessModal({
+            account: client, amount: result, currency: to,
+            statement: 'مصارفة '+amount+' '+from+' بسعر '+rate,
+            newBalance: '', whatsappType: 'exchange', repeatLabel: '+ مصارفة أخرى',
+            repeatAction: function() { hideSuccessModal(); switchPage('addEntryPage'); switchQuickTab('currencyExchangeContent',document.querySelector('#addEntryPage .quick-tab:nth-child(3)')); }
+        }, 'new');
+        if (type==='client') { document.getElementById('exAmount').value=''; document.getElementById('exRate').value=''; }
+        else { document.getElementById('exAmountBox').value=''; document.getElementById('exRateBox').value=''; }
+        showToast('💱 تمت المصارفة بنجاح');
+    }
+
+    function renderEntriesList() {
+        var container = document.getElementById('entriesList');
+        if (!container) return;
+        if (!mockEntries.length) {
+            container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--hint-color);"><i class="fa-solid fa-table-list" style="font-size:32px;"></i><div>لا توجد قيود</div></div>';
+            return;
+        }
+        var html = '';
+        mockEntries.forEach(function(entry) {
+            var tc = entry.type==='credit'?'#00f2fe':'#ff4757';
+            var ts = entry.type==='credit'?'▲':'▼';
+            html += '<div class="entry-card" id="card_'+entry.id+'">';
+            html += '<div class="card-top-row"><span class="time-stamp">'+entry.dateTime+'</span><span class="status-indicator">✓</span></div>';
+            html += '<div class="account-title">'+entry.account+'</div>';
+            html += '<div class="meta-text">'+entry.currency+' | '+(entry.box||'-')+'</div>';
+            html += '<div class="statement-text">'+entry.statement+'</div>';
+            html += '<div style="display:flex;justify-content:space-between;padding-top:12px;border-top:1px solid rgba(255,255,255,0.05);"><span class="amount-num" style="color:'+tc+';">'+ts+' '+entry.amount.toLocaleString()+' '+entry.currency+'</span></div>';
+            html += '<div class="bottom-actions-row">';
+            html += '<button class="circle-action-btn" onclick="editEntry(\''+entry.id+'\')"><span class="circle-icon"><i class="fa-solid fa-pen-to-square"></i></span><span class="btn-lbl">تعديل</span></button>';
+            html += '<button class="circle-action-btn" style="border-color:rgba(239,68,68,0.15);" onclick="openConfirmDialog(\''+entry.id+'\',\'entry\',\'هل أنت متأكد من رغبتك في الحذف؟\')"><span class="circle-icon" style="color:#ff4757;"><i class="fa-solid fa-trash"></i></span><span class="btn-lbl" style="color:#ff4757;">حذف</span></button>';
+            html += '</div></div>';
+        });
+        container.innerHTML = html;
+    }
+
+    function updateEntriesStats() {
+        var tc=0, td=0;
+        mockEntries.forEach(function(e) { if(e.type==='credit') tc+=e.amount; else td+=e.amount; });
+        var ce=document.getElementById('entriesCount'); if(ce) ce.innerText=mockEntries.length;
+        var cre=document.getElementById('totalCredit'); if(cre) cre.innerText=tc.toFixed(2);
+        var de=document.getElementById('totalDebit'); if(de) de.innerText=td.toFixed(2);
+        var ne=document.getElementById('netBalance'); if(ne) ne.innerText=(tc-td).toFixed(2);
+    }
+
+    function filterEntries(period, btn) {
+        var tabs = document.querySelectorAll('#entriesPage .tab-btn, #accountStatementPage .tab-btn');
+        tabs.forEach(function(t){t.classList.remove('active');});
+        if(btn) btn.classList.add('active');
+        showToast('🔍 تم تطبيق الفلترة: '+period);
+    }
+
+    function filterUtility(period, btn) {
+        var tabs = document.querySelectorAll('#utilitySystemPage .tab-btn');
+        tabs.forEach(function(t){t.classList.remove('active');});
+        if(btn) btn.classList.add('active');
+    }
+
+    function filterByBox(boxVal) {
+        mockEntries.forEach(function(entry) {
+            var card = document.getElementById('card_'+entry.id); if(!card) return;
+            if (boxVal==='all' || (entry.box||'').includes(boxVal)) { card.style.display='block'; }
+            else { card.style.display='none'; }
+        });
+    }
+
+    function searchEntriesLive(query) {
+        var q = query.toLowerCase().trim();
+        mockEntries.forEach(function(entry) {
+            var card = document.getElementById('card_'+entry.id); if(!card) return;
+            if (entry.account.toLowerCase().includes(q) || entry.statement.toLowerCase().includes(q) || entry.amount.toString().includes(q)) {
+                card.style.display='block'; card.style.opacity='1';
+            } else { card.style.display='none'; }
+        });
+    }
+
+    function refreshDataWithLoader(btn) {
+        if(btn){btn.style.transform='rotate(360deg)';btn.style.transition='transform 0.8s ease';}
+        setTimeout(function(){
+            renderEntriesList(); updateEntriesStats(); updateStats();
+            if(btn){btn.style.transform='none';}
+            showToast('✨ تم التحديث');
+        },1000);
+    }
+
+    function watchAmountInput(inputEl, feedbackElId) {
+        var fb = document.getElementById(feedbackElId); if(!fb) return;
+        var val = parseFloat(inputEl.value);
+        if(!val||isNaN(val)){fb.innerText='';return;}
+        fb.innerHTML = 'المبلغ كتابةً: <b style="color:#00f2fe;">'+tafqeetNumber(val)+'</b>';
+    }
+
+    function tafqeetNumber(num) {
+        if(!num||isNaN(num)) return '';
+        var units=['','ألف','مليون','مليار'];
+        var digits=['','واحد','اثنان','ثلاثة','أربعة','خمسة','ستة','سبعة','ثمانية','تسعة'];
+        var teens=['عشرة','أحد عشر','اثنا عشر','ثلاثة عشر','أربعة عشر','خمسة عشر','ستة عشر','سبعة عشر','ثمانية عشر','تسعة عشر'];
+        var tens=['','عشرة','عشرون','ثلاثون','أربعون','خمسون','ستون','سبعون','ثمانون','تسعون'];
+        var hundreds=['','مائة','مئتان','ثلاثمائة','أربعمائة','خمسمائة','ستمائة','سبعمائة','ثمانمائة','تسعمائة'];
+        function cLT(n){var r='';if(n>=100){r+=hundreds[Math.floor(n/100)]+' ';n%=100;}if(n>=20){r+=(n%10===0?'':digits[n%10]+' و')+tens[Math.floor(n/10)];}else if(n>=10){r+=teens[n-10];}else if(n>0){r+=digits[n];}return r.trim();}
+        if(num===0)return'صفر';var r='',ui=0;
+        while(num>0){var chunk=num%1000;if(chunk>0){var ct=cLT(chunk);if(ui>0&&chunk===1&&ui===1)ct='ألف';else if(ui>0&&chunk===2&&ui===1)ct='ألفان';else if(ui>0&&chunk>10)ct+=' '+units[ui]+'اً';else if(ui>0)ct+=' '+units[ui];r=ct+(r?' و'+r:'');}num=Math.floor(num/1000);ui++;}
+        return r.trim();
+    }
+
+    function switchQuickTab(contentId, btn) {
+        document.querySelectorAll('.quick-tab-content').forEach(function(c){c.style.display='none';});
+        document.querySelectorAll('.quick-tab').forEach(function(t){t.classList.remove('active');});
+        var content = document.getElementById(contentId);
+        if(content) content.style.display='block';
+        if(btn) btn.classList.add('active');
+        updateAllDateFields();
+        if(contentId==='currencyExchangeContent') switchExchangeMode('client',document.getElementById('exchangeClientTab'));
+    }
+
+    function saveNewAccount() {
+        var name = document.getElementById('accName').value;
+        var phone = document.getElementById('accPhone').value;
+        var whatsappEnabled = document.getElementById('toggleWhatsapp').checked;
+        if(!name){showCustomAlert('⚠️ خطأ','يرجى إدخال اسم الحساب');return;}
+        var acc = {name:name, phone:phone||'', whatsappEnabled:whatsappEnabled,
+            balances:{YER:{type:'صفر',amount:0},SAR:{type:'صفر',amount:0},USD:{type:'صفر',amount:0}}};
+        mockAccounts.push(acc);
+        var selects = document.querySelectorAll('select');
+        selects.forEach(function(sel){
+            if(sel.id==='entryAccount'||sel.id==='exClientSelect'){
+                var opt=document.createElement('option');opt.value=name;opt.text=name;sel.appendChild(opt);
+            }
+        });
+        showToast('✨ تم حفظ الحساب بنجاح');
+        updateStats(); filterDirectory('');
+        document.getElementById('accName').value='';document.getElementById('accPhone').value='';
+        switchPage('mainPage');
+    }
+
+    function deleteAccount(name) {
+        openConfirmDialog(name, 'account', 'هل أنت متأكد من رغبتك في حذف الحساب؟');
+    }
+
+    function toggleStaffForm() {
+        var form = document.getElementById('staffForm');
+        form.style.display = form.style.display==='none'?'block':'none';
+    }
+    function saveNewStaff() {
+        var name=document.getElementById('staffName').value;
+        var phone=document.getElementById('staffPhone').value;
+        var pass=document.getElementById('staffPassword').value;
+        if(!name||!phone||!pass){showCustomAlert('⚠️ خطأ','يرجى ملء جميع الحقول');return;}
+        var cred=document.getElementById('staffCredentialsDisplay');
+        if(cred){cred.style.display='block';cred.innerHTML='👤 اسم المستخدم: '+name+'\n📞 رقم الهاتف: '+phone+'\n🔑 كلمة المرور: '+pass;}
+        showToast('✨ تم إضافة الموظف');
+        document.getElementById('staffForm').style.display='none';
+    }
+
+    function copyReferralLink() { if(navigator.clipboard)navigator.clipboard.writeText('t.me/EltizamProBot?start=user123'); showCustomAlert('📋 تم النسخ','تم نسخ رابط الإحالة'); }
+
+    function toggleSettingsDropdown() {
+        var d=document.getElementById('settingsDropdown');
+        d.style.display=(d.style.display==='block')?'none':'block';
+    }
+    function closeSettingsDropdown() { document.getElementById('settingsDropdown').style.display='none'; }
+
+    function switchPage(pageId) {
+        var d=document.getElementById('settingsDropdown'); if(d) d.style.display='none';
+        document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+        var target=document.getElementById(pageId);
+        if(target){target.classList.add('active');window.scrollTo(0,0);updateAllDateFields();}
+        if(pageId==='directoryPage') filterDirectory('');
+    }
+
+    function openWhatsApp() { var url="https://wa.me/message/ECXIR3SSPZNGJ1"; if(tg&&tg.openLink)tg.openLink(url);else window.open(url,'_blank'); }
+    function exportInvoicePDF() { showToast('📄 جاري تصدير PDF...'); }
+    function printInvoice() { window.print(); }
+    function saveInvoicePNG() { showToast('💾 جاري حفظ PNG...'); }
+    function callSupport() { window.location.href="tel:775154169"; }
+    function toggleCeilingInput() {
+        var cb=document.getElementById('toggleCeiling');
+        var ct=document.getElementById('ceilingInputContainer');
+        if(ct&&cb) ct.style.display=cb.checked?'block':'none';
+    }
+
+    var targetCurrencySelect=null;
+    function openCurrencyPopup(sel){targetCurrencySelect=sel;document.getElementById('currencyPopup').classList.add('show');}
+    function closeCurrencyPopup(){document.getElementById('currencyPopup').classList.remove('show');targetCurrencySelect=null;}
+    function selectCurrency(cur){if(targetCurrencySelect)targetCurrencySelect.value=cur;closeCurrencyPopup();}
+
+    function setMainCurrency(cur){mainCurrency=cur;updateStats();showToast('💱 تم تغيير العملة الرئيسية إلى '+cur);}
+
+    function uploadLogo(input){
+        if(input.files&&input.files[0]){
+            var reader=new FileReader();
+            reader.onload=function(e){
+                appLogo=e.target.result;
+                var c=document.getElementById('mainLogoContainer');
+                c.innerHTML='<img src="'+appLogo+'" style="width:100%;height:100%;object-fit:contain;border-radius:50%;">';
+                showToast('🖼️ تم رفع الشعار');
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+    function deleteLogo(){
+        appLogo=null;
+        var c=document.getElementById('mainLogoContainer');
+        c.innerHTML='<img src="https://i.postimg.cc/XYb4L5vC/Screenshot-20260609-215655.png" alt="التزام برو" style="width:100%;height:100%;object-fit:contain;border-radius:50%;" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'<i class=&quot;fa-solid fa-building-columns&quot; style=&quot;font-size:50px;color:#00F2FE;&quot;></i>\';">';
+        showToast('🗑️ تم حذف الشعار');
+    }
+
+    function filterDirectory(query){
+        var dl=document.getElementById('directoryList');if(!dl)return;
+        var q=query.toLowerCase().trim();
+        var filtered=q?mockAccounts.filter(function(a){return a.name.toLowerCase().includes(q)||a.phone.includes(q);}):mockAccounts;
+        if(!filtered.length){dl.innerHTML='<div style="text-align:center;padding:20px;color:var(--hint-color);">لا يوجد مشتركين</div>';return;}
+        var html='';
+        filtered.forEach(function(a){
+            var bal='';
+            ['YER','SAR','USD'].forEach(function(c){var b=a.balances[c]||{type:'صفر',amount:0};bal+='<span>'+c+': '+b.type+' '+b.amount+'</span>';});
+            html+='<div class="account-card-mini"><div class="acc-name"><i class="fa-solid fa-user"></i> '+a.name;
+            html+=' <button onclick="editAccount(\''+a.name+'\')" style="background:transparent;border:none;color:var(--cyan-neon);cursor:pointer;font-size:12px;"><i class="fa-solid fa-pen-to-square"></i></button>';
+            html+=' <button onclick="deleteAccount(\''+a.name+'\')" style="background:transparent;border:none;color:var(--danger-color);cursor:pointer;font-size:12px;"><i class="fa-solid fa-trash"></i></button>';
+            html+='</div><div class="acc-balances">'+bal+'</div></div>';
+        });
+        dl.innerHTML=html;
+    }
+
+    function editAccount(name) {
+        var acc = mockAccounts.find(function(a){return a.name===name;});
+        if(!acc) return;
+        switchPage('addAccountPage');
+        document.getElementById('accName').value = acc.name;
+        document.getElementById('accPhone').value = acc.phone||'';
+        document.getElementById('toggleWhatsapp').checked = acc.whatsappEnabled!==false;
+        var titleEl = document.querySelector('#addAccountPage h3');
+        if(titleEl) titleEl.innerHTML = '<i class="fa-solid fa-user-pen"></i> تعديل حساب';
+        var saveBtn = document.querySelector('#addAccountPage button[onclick="saveNewAccount()"]');
+        if(saveBtn){saveBtn.onclick=function(){updateAccount(name);};saveBtn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> تحديث';}
+    }
+
+    function updateAccount(oldName) {
+        var acc = mockAccounts.find(function(a){return a.name===oldName;});
+        if(!acc) return;
+        var newName = document.getElementById('accName').value;
+        var newPhone = document.getElementById('accPhone').value;
+        var newWhatsapp = document.getElementById('toggleWhatsapp').checked;
+        if(!newName){showCustomAlert('⚠️ خطأ','يرجى إدخال اسم الحساب');return;}
+        acc.name = newName;
+        acc.phone = newPhone;
+        acc.whatsappEnabled = newWhatsapp;
+        showToast('✅ تم تحديث الحساب');
+        updateStats(); filterDirectory('');
+        switchPage('directoryPage');
+        var titleEl = document.querySelector('#addAccountPage h3');
+        if(titleEl) titleEl.innerHTML = '<i class="fa-solid fa-user-plus"></i> إضافة حساب';
+        var saveBtn = document.querySelector('#addAccountPage button[onclick^="updateAccount"]');
+        if(saveBtn){saveBtn.onclick=function(){saveNewAccount();};saveBtn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> حفظ';}
+    }
+
+    // ============ DOMContentLoaded ============
+    document.addEventListener('DOMContentLoaded', function() {
+        loadWhatsAppSettings();
+        var savedUser = localStorage.getItem('eltizam_currentUser');
+        if (savedUser) {
+            try { currentUser = JSON.parse(savedUser); showMainApp(); }
+            catch(e) { document.getElementById('loginPage').style.display='flex'; document.getElementById('mainAppContainer').style.display='none'; }
+        } else {
+            document.getElementById('loginPage').style.display='flex';
+            document.getElementById('mainAppContainer').style.display='none';
+        }
+        updateAllDateFields(); renderEntriesList(); updateEntriesStats(); updateStats();
+        switchQuickTab('addEntryContent', document.querySelector('#addEntryPage .quick-tab.active'));
+        switchExchangeMode('client', document.getElementById('exchangeClientTab'));
+        setTransferMode('receive', document.getElementById('transferReceiveBtn'));
+        filterDirectory('');
+    });
+    </script>
+</body>
+</html>
