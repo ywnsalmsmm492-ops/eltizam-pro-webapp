@@ -1,0 +1,2523 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>التزام برو - لوحة التحكم الذكية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js">
+    </script>
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --bg-card: rgba(17, 24, 39, 0.7);
+            --bg-card-hover: rgba(30, 41, 59, 0.8);
+            --border-light: rgba(255, 255, 255, 0.07);
+            --text-color: #f8fafc;
+            --hint-color: #94a3b8;
+            --gold-color: #f59e0b;
+            --gold-gradient: linear-gradient(135deg, #f59e0b, #d97706);
+            --accent-blue: #2563eb;
+            --blue-gradient: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            --green-gradient: linear-gradient(135deg, #10b981, #059669);
+            --success-color: #10b981;
+            --success-bg: rgba(16, 185, 129, 0.1);
+            --danger-color: #ef4444;
+            --danger-bg: rgba(239, 68, 68, 0.12);
+            --danger-border: rgba(239, 68, 68, 0.25);
+            --logout-red: #dc2626;
+            --cyan-neon: #00F2FE;
+            --dark-navy: #0A0F1D;
+            --icon-color: #c8d6e5;
+            --icon-size: 1.15rem;
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--dark-navy);
+            color: var(--text-color);
+            margin: 0;
+            padding: 14px;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+            position: relative;
+            background-image: radial-gradient(circle at top left, rgba(0, 242, 254, 0.06), transparent 40%),
+                radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.04), transparent 40%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        .webapp-container {
+            width: 100%;
+            max-width: 450px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .btn-icon {
+            font-size: var(--icon-size);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            width: 24px;
+            text-align: center;
+            flex-shrink: 0;
+            color: var(--icon-color);
+        }
+        .btn-item.add-entry-primary .btn-icon {
+            color: #090d16;
+            font-size: 1.3rem;
+        }
+        .btn-item.boxes-trigger .btn-icon,
+        .btn-item.all-services-trigger .btn-icon,
+        .btn-item.renew-trigger .btn-icon {
+            color: #fff;
+        }
+        .btn-item.logout-btn .btn-icon {
+            color: var(--logout-red);
+        }
+
+        .auth-overlay {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--dark-navy);
+            z-index: 100000;
+            background-image: radial-gradient(circle at top left, rgba(0, 242, 254, 0.08), transparent 40%),
+                radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.05), transparent 40%);
+        }
+        .auth-overlay.hidden {
+            display: none;
+        }
+        .auth-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-light);
+            border-radius: 25px;
+            padding: 28px 22px;
+            width: 90%;
+            max-width: 380px;
+            text-align: center;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55);
+        }
+        .auth-logo {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 14px auto;
+            border-radius: 50%;
+            border: 3px solid var(--cyan-neon);
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.35);
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .auth-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        .role-switch {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+        .role-btn {
+            flex: 1;
+            padding: 10px 6px;
+            border: 1px solid var(--cyan-neon);
+            background: transparent;
+            color: var(--cyan-neon);
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            font-family: 'Cairo', sans-serif;
+            font-size: 13px;
+        }
+        .role-btn.active {
+            background: var(--cyan-neon);
+            color: #000;
+            box-shadow: 0 4px 14px rgba(0, 242, 254, 0.35);
+        }
+        .role-btn:disabled {
+            opacity: 0.45;
+            pointer-events: none;
+        }
+        .auth-card input {
+            width: 100%;
+            padding: 13px 14px;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(0, 242, 254, 0.18);
+            border-radius: 12px;
+            color: white;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+            font-size: 13px;
+            transition: border 0.2s, box-shadow 0.2s;
+        }
+        .auth-card input:focus {
+            border-color: var(--cyan-neon);
+            outline: none;
+            background: rgba(0, 242, 254, 0.04);
+        }
+        .auth-card input.error-shake {
+            animation: shake 0.5s ease;
+            border-color: #ff4757 !important;
+            box-shadow: 0 0 12px rgba(255, 71, 87, 0.4);
+        }
+        .auth-error-msg {
+            color: #ff4757;
+            font-size: 11px;
+            margin-top: -8px;
+            margin-bottom: 10px;
+            text-align: right;
+            display: none;
+            font-weight: 600;
+        }
+        .auth-error-msg.show {
+            display: block;
+        }
+        .auth-main-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #00F2FE, #0ea5e9);
+            border: none;
+            border-radius: 14px;
+            font-weight: 900;
+            color: #000;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            font-size: 15px;
+            transition: 0.2s;
+            margin-top: 4px;
+        }
+        .auth-main-btn:active {
+            transform: scale(0.96);
+            opacity: 0.85;
+        }
+        .auth-link {
+            margin-top: 14px;
+            font-size: 12px;
+            color: var(--cyan-neon);
+            cursor: pointer;
+            text-decoration: underline;
+            font-weight: 600;
+        }
+        .auth-footer {
+            margin-top: 20px;
+            font-size: 11px;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .auth-footer span {
+            color: #94a3b8;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 600;
+        }
+        .auth-footer a {
+            color: var(--cyan-neon);
+            text-decoration: none;
+            font-weight: 700;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .custom-alert {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 85%;
+            max-width: 380px;
+            background: rgba(15, 23, 42, 0.97);
+            border: 1px solid var(--cyan-neon);
+            border-radius: 14px;
+            padding: 14px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            text-align: center;
+            animation: slideInAlert 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: blur(10px);
+        }
+        @keyframes slideInAlert {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -20px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+        .custom-alert h4 {
+            margin: 0 0 6px 0;
+            color: var(--cyan-neon);
+            font-size: 14px;
+        }
+        .custom-alert p {
+            margin: 0 0 12px 0;
+            font-size: 12px;
+            color: #cbd5e1;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .custom-alert button {
+            background: var(--cyan-neon);
+            border: none;
+            padding: 6px 20px;
+            color: #000;
+            font-family: 'Cairo';
+            font-weight: 700;
+            font-size: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .confirm-dialog {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10001;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+        .confirm-dialog.show {
+            display: flex;
+        }
+        .confirm-box {
+            background: linear-gradient(135deg, #0f172a, #090d16);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            border-radius: 18px;
+            padding: 20px;
+            text-align: center;
+            max-width: 320px;
+            width: 90%;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+        }
+        .confirm-box h4 {
+            color: var(--danger-color);
+            margin: 0 0 10px 0;
+            font-size: 14px;
+        }
+        .confirm-box p {
+            font-size: 12px;
+            color: #cbd5e1;
+            margin-bottom: 16px;
+        }
+        .confirm-box .confirm-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .confirm-box .confirm-actions button {
+            flex: 1;
+            padding: 10px;
+            border-radius: 10px;
+            font-family: 'Cairo';
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+        }
+        .btn-delete-confirm {
+            background: var(--danger-color);
+            color: #fff;
+        }
+        .btn-cancel-confirm {
+            background: var(--accent-blue);
+            color: #fff;
+        }
+        .toast-notification {
+            position: fixed;
+            bottom: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 15, 29, 0.96);
+            border: 1px solid var(--cyan-neon);
+            border-radius: 12px;
+            padding: 10px 18px;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            z-index: 10002;
+            transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            white-space: nowrap;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+        }
+        .toast-notification.show {
+            bottom: 24px;
+        }
+        .system-status-bar {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 8px 14px;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 16px;
+            color: var(--hint-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: var(--success-color);
+            border-radius: 50%;
+            margin-left: 6px;
+            box-shadow: 0 0 10px var(--success-color);
+        }
+        .settings-top-trigger {
+            position: absolute;
+            top: 52px;
+            left: 2px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: blur(5px);
+            color: var(--icon-color);
+        }
+        .settings-top-trigger:active {
+            transform: scale(0.9) rotate(45deg);
+            background: var(--bg-card-hover);
+        }
+        .settings-dropdown {
+            display: none;
+            background: linear-gradient(135deg, #0f172a, #090d16);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+            animation: slideDown 0.3s ease-out;
+        }
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .logo-section {
+            text-align: center;
+            margin-bottom: 20px;
+            margin-top: 5px;
+        }
+        .logo-circle {
+            width: 100px;
+            height: 100px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 0 5px var(--dark-navy), 0 0 0 7px var(--cyan-neon), 0 10px 25px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            margin: 0 auto;
+            position: relative;
+        }
+        .logo-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        .user-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        }
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        .badge-premium {
+            background: var(--cyan-neon);
+            color: #000;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 11px;
+            box-shadow: 0 2px 8px rgba(0, 242, 254, 0.3);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .stat-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+        .stat-label {
+            color: var(--hint-color);
+        }
+        .stat-value {
+            font-weight: 700;
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .full-width {
+            grid-column: span 2;
+        }
+        .btn-item {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            padding: 13px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 10px;
+            text-align: right;
+            transition: all 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            width: 100%;
+            box-sizing: border-box;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            font-family: 'Cairo', sans-serif;
+            font-size: 12px;
+            color: #f8fafc;
+        }
+        .btn-item:active {
+            transform: scale(0.96);
+            border-color: var(--cyan-neon) !important;
+            background: rgba(0, 242, 254, 0.05);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.15);
+        }
+        .btn-text {
+            font-size: 12px;
+            font-weight: 600;
+            color: #f8fafc;
+            transition: 0.2s;
+        }
+        .btn-item.add-entry-primary {
+            background: linear-gradient(135deg, #00F2FE, #0ea5e9) !important;
+            border: none !important;
+            box-shadow: 0 4px 20px rgba(0, 242, 254, 0.35);
+            animation: pulseGlow 2s infinite;
+        }
+        @keyframes pulseGlow {
+            0%,
+            100% {
+                box-shadow: 0 4px 20px rgba(0, 242, 254, 0.35);
+            }
+            50% {
+                box-shadow: 0 6px 28px rgba(0, 242, 254, 0.55);
+            }
+        }
+        .btn-item.add-entry-primary .btn-text {
+            color: #090d16 !important;
+            font-weight: 800;
+            font-size: 14px;
+        }
+        .btn-item.boxes-trigger {
+            background: var(--green-gradient) !important;
+            border: none !important;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+        }
+        .btn-item.boxes-trigger .btn-text {
+            color: #fff;
+            font-weight: 800;
+        }
+        .btn-item.all-services-trigger {
+            background: var(--blue-gradient);
+            border: none;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+        }
+        .btn-item.all-services-trigger .btn-text {
+            color: white;
+            font-weight: 700;
+        }
+        .btn-item.renew-trigger {
+            background: var(--cyan-neon);
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
+        }
+        .btn-item.renew-trigger .btn-text {
+            color: #090d16;
+            font-weight: 800;
+        }
+        .btn-item.logout-btn {
+            background: rgba(220, 38, 38, 0.08);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            justify-content: center;
+            margin-top: 4px;
+        }
+        .btn-item.logout-btn .btn-text {
+            color: var(--logout-red);
+            font-weight: 800;
+        }
+        .back-btn {
+            width: 100%;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            padding: 12px;
+            color: var(--hint-color);
+            font-size: 13px;
+            font-weight: 700;
+            font-family: 'Cairo', sans-serif;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+            box-sizing: border-box;
+            transition: all 0.2s;
+            backdrop-filter: blur(5px);
+        }
+        .back-btn:active {
+            border-color: var(--cyan-neon);
+            color: var(--cyan-neon);
+        }
+        .floating-back {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 200;
+            background: var(--bg-card);
+            border: 1px solid var(--cyan-neon);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--cyan-neon);
+            font-size: 20px;
+            backdrop-filter: blur(10px);
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(0, 242, 254, 0.2);
+        }
+        .floating-back:active {
+            transform: scale(0.88);
+            background: rgba(0, 242, 254, 0.1);
+        }
+        .box-container-card {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(5, 150, 105, 0.05));
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            border-radius: 20px;
+            padding: 18px;
+            margin-top: 10px;
+            margin-bottom: 14px;
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.1);
+        }
+        .box-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(16, 185, 129, 0.15);
+            padding-bottom: 12px;
+            margin-bottom: 14px;
+        }
+        .box-card-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--success-color);
+        }
+        .box-balance-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 13px;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+        }
+        .box-balance-converted {
+            font-size: 12px;
+            color: var(--cyan-neon);
+            margin-top: 10px;
+            border-top: 1px dashed rgba(255, 255, 255, 0.08);
+            padding-top: 10px;
+            text-align: left;
+            font-weight: 700;
+        }
+        .box-card-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .box-action-sub-btn {
+            flex: 1;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 12px;
+            color: #f8fafc;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            font-family: 'Cairo', sans-serif;
+            transition: all 0.2s;
+        }
+        .switch-modern {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .switch-modern input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider-modern {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #334155;
+            transition: .3s;
+            border-radius: 34px;
+        }
+        .slider-modern:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        input:checked+.slider-modern {
+            background-color: var(--cyan-neon);
+        }
+        input:checked+.slider-modern:before {
+            transform: translateX(20px);
+        }
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 4px 2px 14px 2px;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .filter-tabs::-webkit-scrollbar {
+            display: none;
+        }
+        .tab-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 20px;
+            border-radius: 12px;
+            font-family: 'Cairo';
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--hint-color);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s;
+        }
+        .tab-btn.active {
+            background: linear-gradient(135deg, #00f2fe, #4facfe) !important;
+            color: #0b1528 !important;
+            border-color: var(--cyan-neon);
+            box-shadow: 0 4px 10px rgba(0, 242, 254, 0.25);
+        }
+        .quick-tabs-header {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 6px 2px 14px 2px;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .quick-tabs-header::-webkit-scrollbar {
+            display: none;
+        }
+        .quick-tab {
+            flex: 1;
+            min-width: 80px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-family: 'Cairo';
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+            cursor: pointer;
+            white-space: nowrap;
+            text-align: center;
+            transition: all 0.15s;
+        }
+        .quick-tab.active {
+            background: linear-gradient(135deg, #00f2fe, #4facfe) !important;
+            color: #0b1528 !important;
+            border-color: var(--cyan-neon);
+            box-shadow: 0 4px 12px rgba(0, 242, 254, 0.3);
+        }
+        .invoice-glass-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            padding: 18px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+        }
+        .invoice-glass-card label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--hint-color);
+            margin-bottom: 4px;
+            margin-top: 8px;
+        }
+        .invoice-glass-card input,
+        .invoice-glass-card select,
+        .invoice-glass-card textarea {
+            width: 100%;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #fff;
+            font-family: 'Cairo', sans-serif;
+            font-size: 13px;
+            outline: none;
+            box-sizing: border-box;
+            transition: border 0.2s;
+        }
+        .invoice-glass-card input:focus,
+        .invoice-glass-card select:focus,
+        .invoice-glass-card textarea:focus {
+            border-color: var(--cyan-neon);
+        }
+        .invoice-glass-card h3 {
+            color: var(--cyan-neon);
+            text-align: center;
+            margin-top: 0;
+            font-size: 16px;
+        }
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+        .popup-overlay.show {
+            display: flex;
+        }
+        .popup-content {
+            background: var(--dark-navy);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            border-radius: 20px;
+            padding: 18px;
+            width: 90%;
+            max-width: 380px;
+            max-height: 70vh;
+            overflow-y: auto;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+        }
+        .popup-content .popup-search {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border-light);
+            background: var(--bg-card);
+            color: #fff;
+            font-family: 'Cairo';
+            font-size: 13px;
+            margin-bottom: 12px;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .account-card-mini {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-light);
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .account-card-mini:active {
+            background: rgba(0, 242, 254, 0.08);
+            border-color: var(--cyan-neon);
+        }
+        .account-card-mini .acc-name {
+            font-size: 14px;
+            font-weight: 800;
+            color: #fff;
+        }
+        .account-card-mini .acc-balances {
+            font-size: 11px;
+            margin-top: 4px;
+        }
+        @keyframes shake {
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+            20%,
+            60% {
+                transform: translateX(-6px);
+            }
+            40%,
+            80% {
+                transform: translateX(6px);
+            }
+        }
+        .currency-popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.65);
+            z-index: 9998;
+            justify-content: center;
+            align-items: center;
+        }
+        .currency-popup.show {
+            display: flex;
+        }
+        .currency-popup-content {
+            background: var(--dark-navy);
+            border: 1px solid var(--cyan-neon);
+            border-radius: 16px;
+            padding: 20px;
+            width: 85%;
+            max-width: 300px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+            text-align: center;
+        }
+        .currency-popup-content h4 {
+            color: var(--cyan-neon);
+            margin: 0 0 14px 0;
+            font-size: 14px;
+        }
+        .currency-option {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #fff;
+            font-family: 'Cairo';
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .permission-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .permission-item span {
+            font-size: 13px;
+            color: #e2e8f0;
+            font-weight: 600;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .success-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 99999;
+            justify-content: center;
+            align-items: center;
+        }
+        .success-overlay.show {
+            display: flex;
+        }
+        .success-box {
+            background: var(--dark-navy);
+            border: 2px solid var(--success-color);
+            border-radius: 24px;
+            padding: 30px;
+            text-align: center;
+            max-width: 320px;
+            width: 90%;
+            box-shadow: 0 0 40px rgba(16, 185, 129, 0.3);
+            animation: successPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes successPop {
+            from {
+                transform: scale(0.7);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        .success-box .check-icon {
+            font-size: 60px;
+            color: var(--success-color);
+            margin-bottom: 10px;
+        }
+        .success-box h3 {
+            color: #fff;
+            margin: 8px 0;
+        }
+        .success-box p {
+            color: var(--hint-color);
+            font-size: 12px;
+            margin-bottom: 16px;
+        }
+        .success-box button {
+            background: var(--success-color);
+            border: none;
+            padding: 10px 24px;
+            border-radius: 12px;
+            color: #fff;
+            font-family: 'Cairo';
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .exchange-rate-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .exchange-rate-row input {
+            flex: 1;
+        }
+        .exchange-result {
+            font-size: 11px;
+            color: var(--cyan-neon);
+            background: rgba(0, 242, 254, 0.06);
+            padding: 8px 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            text-align: center;
+            font-weight: 700;
+        }
+        .buy-sell-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .buy-sell-toggle button {
+            flex: 1;
+            padding: 8px;
+            border-radius: 10px;
+            font-family: 'Cairo';
+            font-weight: 700;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: transparent;
+            color: #fff;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .buy-sell-toggle button.active-sell {
+            background: #ef4444;
+            border-color: #ef4444;
+            color: #fff;
+        }
+        .buy-sell-toggle button.active-buy {
+            background: #10b981;
+            border-color: #10b981;
+            color: #fff;
+        }
+        .staff-credentials-box {
+            background: rgba(0, 242, 254, 0.05);
+            border: 1px dashed var(--cyan-neon);
+            border-radius: 14px;
+            padding: 14px;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+        .staff-credentials-box strong {
+            color: var(--cyan-neon);
+        }
+        .copy-credentials-btn {
+            background: var(--cyan-neon);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: #000;
+            font-family: 'Cairo';
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 11px;
+            margin-top: 6px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== صفحة التسجيل ==================== -->
+    <div id="authOverlay" class="auth-overlay">
+        <div class="auth-card">
+            <div class="auth-logo" id="authLogoContainer">
+                <img src="https://i.postimg.cc/7Jvt7c0r/logo.png" alt="التزام برو" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none';this.parentElement.innerHTML='<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 120 120\\'><circle cx=\\'60\\' cy=\\'55\\' r=\\'46\\' fill=\\'none\\' stroke=\\'#102a43\\' stroke-width=\\'4\\'/><path d=\\'M60 9 A 46 46 0 0 1 103 40\\' fill=\\'none\\' stroke=\\'#00F2FE\\' stroke-width=\\'4\\' stroke-linecap=\\'round\\'/><rect x=\\'35\\' y=\\'28\\' width=\\'26\\' height=\\'34\\' rx=\\'3\\' fill=\\'#102a43\\'/><rect x=\\'48\\' y=\\'40\\' width=\\'28\\' height=\\'34\\' rx=\\'2\\' fill=\\'#ffffff\\' stroke=\\'#102a43\\' stroke-width=\\'2\\'/><circle cx=\\'82\\' cy=\\'70\\' r=\\'13\\' fill=\\'#102a43\\' stroke=\\'#ffffff\\' stroke-width=\\'2\\'/><path d=\\'M75 70 L89 64 L86 76 L82 72 L79 74 Z\\' fill=\\'#ffffff\\'/></svg>';">
+            </div>
+            <div class="role-switch" id="role-container">
+                <button class="role-btn active" id="btn-admin" onclick="setAuthRole('admin')">مدير</button>
+                <button class="role-btn" id="btn-employee" onclick="setAuthRole('employee')">موظف</button>
+            </div>
+            <h2 id="authTitle" style="font-size:16px; margin:0 0 12px 0; color:#fff;">إنشاء حساب مدير</h2>
+            <div id="auth-form-content">
+                <input type="text" id="authName" placeholder="الاسم الكامل">
+                <div id="authNameError" class="auth-error-msg"></div>
+                <input type="tel" id="authPhone" placeholder="رقم الهاتف">
+                <div id="authPhoneError" class="auth-error-msg"></div>
+                <input type="password" id="authPassword" placeholder="كلمة المرور">
+                <div id="authPasswordError" class="auth-error-msg"></div>
+                <input type="password" id="authConfirmPassword" placeholder="تأكيد كلمة المرور">
+                <div id="authConfirmError" class="auth-error-msg"></div>
+                <button class="auth-main-btn" onclick="handleAuthSubmit()">إنشاء الحساب</button>
+            </div>
+            <div class="auth-link" id="authToggleText" onclick="toggleAuthMode()">هل لديك حساب مسبقاً؟ سجل دخولك</div>
+            <div class="auth-footer">
+                <span>برمجة وتطوير</span>
+                <a href="https://wa.me/message/ECXIR3SSPZNGJ1" target="_blank">يونس الكدهي | 775154169</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== شاشة النجاح ==================== -->
+    <div id="successOverlay" class="success-overlay">
+        <div class="success-box">
+            <div class="check-icon"><i class='bx bx-check-circle'></i></div>
+            <h3 id="successTitle">تم بنجاح!</h3>
+            <p id="successMessage">تمت العملية بنجاح</p>
+            <button onclick="closeSuccessOverlay()">حسناً</button>
+        </div>
+    </div>
+
+    <!-- ==================== لوحة التحكم ==================== -->
+    <div id="dashboardContainer" class="hidden">
+        <div id="customAlert" class="custom-alert">
+            <h4 id="alertTitle">إشعار النظام الذكي</h4>
+            <p id="alertMessage"></p>
+            <button onclick="closeCustomAlert()">حسناً 👍</button>
+        </div>
+
+        <div id="confirmDialog" class="confirm-dialog">
+            <div class="confirm-box">
+                <h4>⚠️ تأكيد الحذف</h4>
+                <p id="confirmMessage">هل أنت متأكد من حذف هذا القيد؟</p>
+                <div class="confirm-actions">
+                    <button class="btn-cancel-confirm" onclick="closeConfirmDialog()">إلغاء</button>
+                    <button class="btn-delete-confirm" id="confirmDeleteBtn" onclick="executeDelete()">نعم، احذف</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="toastNotification" class="toast-notification">✨ تم حفظ وترحيل المعاملة بنجاح! 🚀</div>
+
+        <div id="accountSearchPopup" class="popup-overlay">
+            <div class="popup-content">
+                <input type="text" class="popup-search" placeholder="🔎 بحث بالاسم أو الرقم..." oninput="filterAccountsPopup()" id="popupSearchInput">
+                <button class="tab-btn active" style="width:100%; margin-bottom:10px;" onclick="resetAccountFilter()">الكل</button>
+                <div id="popupAccountList"></div>
+                <button class="back-btn" style="margin-top:8px;" onclick="closeAccountSearchPopup()">إغلاق</button>
+            </div>
+        </div>
+
+        <div id="currencyPopup" class="currency-popup" onclick="closeCurrencyPopup()">
+            <div class="currency-popup-content" onclick="event.stopPropagation()">
+                <h4>💱 اختر العملة</h4>
+                <button class="currency-option" onclick="selectCurrency('YER')"><i class='bx bx-money'></i> يمني</button>
+                <button class="currency-option" onclick="selectCurrency('SAR')"><i class='bx bx-money'></i> سعودي</button>
+                <button class="currency-option" onclick="selectCurrency('USD')"><i class='bx bx-money'></i> دولار</button>
+                <button class="back-btn" style="margin-top:8px;" onclick="closeCurrencyPopup()">إغلاق</button>
+            </div>
+        </div>
+
+        <div class="webapp-container">
+            <div class="system-status-bar">
+                <div><span class="status-dot"></span> حالة النظام: متصل بالسيرفر</div>
+                <div>التزام برو v8.0 | 🔒 آمن</div>
+            </div>
+            <div class="settings-top-trigger" onclick="toggleSettingsDropdown()"><i class='bx bx-cog'></i></div>
+            <div class="logo-section">
+                <div class="logo-circle" id="mainLogoContainer">
+                    <img src="https://i.postimg.cc/7Jvt7c0r/logo.png" alt="التزام برو" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none';this.parentElement.innerHTML='<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 120 120\\'><circle cx=\\'60\\' cy=\\'55\\' r=\\'46\\' fill=\\'none\\' stroke=\\'#102a43\\' stroke-width=\\'4\\'/><path d=\\'M60 9 A 46 46 0 0 1 103 40\\' fill=\\'none\\' stroke=\\'#00F2FE\\' stroke-width=\\'4\\' stroke-linecap=\\'round\\'/><rect x=\\'35\\' y=\\'28\\' width=\\'26\\' height=\\'34\\' rx=\\'3\\' fill=\\'#102a43\\'/><rect x=\\'48\\' y=\\'40\\' width=\\'28\\' height=\\'34\\' rx=\\'2\\' fill=\\'#ffffff\\' stroke=\\'#102a43\\' stroke-width=\\'2\\'/><circle cx=\\'82\\' cy=\\'70\\' r=\\'13\\' fill=\\'#102a43\\' stroke=\\'#ffffff\\' stroke-width=\\'2\\'/><path d=\\'M75 70 L89 64 L86 76 L82 72 L79 74 Z\\' fill=\\'#ffffff\\'/></svg>';">
+                </div>
+                <div style="font-family: 'Cairo', sans-serif; font-weight: 800; font-size: 25px; color: white; margin-top: 10px; letter-spacing: 0.5px;">
+                    التزام <span style="color: var(--cyan-neon);">برو</span>
+                </div>
+                <div style="font-family: 'Cairo', sans-serif; font-weight: 600; font-size: 11px; color: var(--hint-color); margin-top: -1px; letter-spacing: 0.3px;">نظام الحسابات الذكي لإدارة الصناديق والخدمات</div>
+            </div>
+
+            <!-- زر الرجوع العائم -->
+            <div class="floating-back" id="floatingBackBtn" style="display:none;" onclick="goBackToMain()"><i class='bx bx-arrow-back'></i></div>
+
+            <!-- الإعدادات -->
+            <div id="settingsDropdown" class="settings-dropdown">
+                <div style="font-size:13px; font-weight:700; color:var(--cyan-neon); margin-bottom:10px; text-align:center;"><i class='bx bx-cog'></i> إعدادات وتفضيلات النظام الفني:</div>
+                <div class="grid-layout">
+                    <button class="btn-item" onclick="switchPage('editProfilePage')"><span class="btn-icon"><i class='bx bx-edit'></i></span><span class="btn-text">تعديل البيانات</span></button>
+                    <button class="btn-item" onclick="switchPage('changePasswordPage')"><span class="btn-icon"><i class='bx bx-lock-alt'></i></span><span class="btn-text">تغيير كلمة السر</span></button>
+                    <button class="btn-item" onclick="switchPage('staffManagementPage')"><span class="btn-icon"><i class='bx bx-user-plus'></i></span><span class="btn-text">إدارة الموظفين</span></button>
+                    <button class="btn-item" onclick="switchPage('mainCurrencyPage')"><span class="btn-icon"><i class='bx bx-money'></i></span><span class="btn-text">العملة الرئيسية</span></button>
+                    <button class="btn-item" onclick="switchPage('notificationsPage')"><span class="btn-icon"><i class='bx bx-bell'></i></span><span class="btn-text">الإشعارات</span></button>
+                    <button class="btn-item" onclick="switchPage('whatsappSettingsPage')"><span class="btn-icon"><i class='bx bxl-whatsapp'></i></span><span class="btn-text">إعدادات واتساب</span></button>
+                    <button class="btn-item full-width" style="justify-content:center;" onclick="switchPage('generalSettingsPage')">
+                        <span class="btn-text" style="color:var(--cyan-neon);"><i class='bx bx-slider-alt'></i> فتح الإعدادات العامة</span>
+                    </button>
+                    <button class="btn-item logout-btn full-width" onclick="logoutSession()"><span class="btn-icon"><i class='bx bx-log-out'></i></span><span class="btn-text">تسجيل الخروج</span></button>
+                </div>
+            </div>
+
+            <!-- بطاقة المستخدم -->
+            <div class="user-card">
+                <div class="user-header">
+                    <div><i class='bx bx-user-circle'></i> المستخدم: <strong style="color:#fff;" id="dashboardUserName">المدير</strong></div>
+                    <span class="badge-premium"><i class='bx bx-star'></i> خطة مميزة</span>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item"><span class="stat-label"><i class='bx bx-trending-up'></i> إجمالي لكم</span><span class="stat-value" style="color:var(--success-color);" id="statTotalLakom">0 يمني</span></div>
+                    <div class="stat-item"><span class="stat-label"><i class='bx bx-trending-down'></i> إجمالي عليكم</span><span class="stat-value" style="color:var(--danger-color);" id="statTotalAlaykom">0</span></div>
+                    <div class="stat-item"><span class="stat-label"><i class='bx bx-group'></i> عدد الحسابات</span><span class="stat-value" id="statAccounts">0</span></div>
+                    <div class="stat-item"><span class="stat-label"><i class='bx bx-wallet'></i> الرصيد</span><span class="stat-value" id="statNetBalance">0</span></div>
+                </div>
+            </div>
+
+            <!-- الصفحة الرئيسية -->
+            <div id="mainPage" class="page active">
+                <div class="grid-layout">
+                    <button class="btn-item boxes-trigger full-width" onclick="switchPage('boxesPage')"><span class="btn-icon"><i class='bx bx-bank'></i></span><span class="btn-text">الصناديق المالية</span></button>
+                    <button class="btn-item add-entry-primary full-width" onclick="switchPage('addEntryPage')"><span class="btn-icon"><i class='bx bx-plus-circle'></i></span><span class="btn-text">إضافة قيد</span></button>
+                    <button class="btn-item" onclick="switchPage('addAccountPage')"><span class="btn-icon"><i class='bx bx-user-plus'></i></span><span class="btn-text">إضافة حساب</span></button>
+                    <button class="btn-item" onclick="switchPage('entriesPage')"><span class="btn-icon"><i class='bx bx-list-ul'></i></span><span class="btn-text">إدارة القيود</span></button>
+                    <button class="btn-item" onclick="switchPage('accountStatementPage')"><span class="btn-icon"><i class='bx bx-file'></i></span><span class="btn-text">كشف حساب</span></button>
+                    <button class="btn-item" onclick="switchPage('directoryPage')"><span class="btn-icon"><i class='bx bx-book'></i></span><span class="btn-text">دليل الحسابات</span></button>
+                    <button class="btn-item" onclick="switchPage('reportsPage')"><span class="btn-icon"><i class='bx bx-bar-chart-alt-2'></i></span><span class="btn-text">التقارير المالية</span></button>
+                    <button class="btn-item" onclick="switchPage('redeemPointsPage')"><span class="btn-icon"><i class='bx bx-gift'></i></span><span class="btn-text">استبدال النقاط</span></button>
+                    <button class="btn-item" onclick="switchPage('referralPage')"><span class="btn-icon"><i class='bx bx-link'></i></span><span class="btn-text">رابط الإحالة</span></button>
+                    <button class="btn-item all-services-trigger" onclick="switchPage('servicesPage')"><span class="btn-icon"><i class='bx bx-folder'></i></span><span class="btn-text">جميع الخدمات</span></button>
+                    <button class="btn-item full-width" style="justify-content:center;" onclick="switchPage('controlPanelPage')"><span class="btn-icon"><i class='bx bx-mobile-alt'></i></span><span class="btn-text">لوحة تحكم النظام الأساسية</span></button>
+                </div>
+            </div>
+
+            <!-- صفحة إضافة قيد -->
+            <div id="addEntryPage" class="page">
+                <button class="back-btn" onclick="switchPage('mainPage')" style="margin-bottom:10px;"><i class='bx bx-arrow-back'></i> رجوع للوحة التحكم</button>
+                <div class="quick-tabs-header">
+                    <button class="quick-tab active" onclick="switchQuickTab('addEntryContent', this)"><i class='bx bx-pencil'></i> قيد</button>
+                    <button class="quick-tab" onclick="switchQuickTab('transferAccountsContent', this)"><i class='bx bx-transfer'></i> تحويل</button>
+                    <button class="quick-tab" onclick="switchQuickTab('currencyExchangeContent', this)"><i class='bx bx-refresh'></i> مصارفة</button>
+                </div>
+                <div id="addEntryContent" class="quick-tab-content">
+                    <div class="invoice-glass-card">
+                        <h3><i class='bx bx-pencil'></i> إضافة قيد</h3>
+                        <label>التاريخ والوقت:</label>
+                        <input type="datetime-local" id="entryDateTime" style="color:#fff;">
+                        <label>الحساب:</label>
+                        <div style="display:flex; gap:8px; margin-bottom:8px;">
+                            <select id="entryAccount" style="flex:1;" onfocus="populateEntryAccountSelect();">
+                                <option value="">اختر الحساب</option>
+                            </select>
+                            <button onclick="openAccountSearchPopup()" style="background:transparent; border:1px solid rgba(0,242,254,0.2); border-radius:10px; padding:0 10px; cursor:pointer; color:var(--cyan-neon); font-weight:700; white-space:nowrap; font-family:'Cairo';"><i class='bx bx-search'></i> بحث</button>
+                        </div>
+                        <label>الصندوق:</label>
+                        <select id="entryBox"><option value="main_box" selected>🏦 الصندوق الرئيسي (افتراضي)</option></select>
+                        <label>العملة:</label>
+                        <select id="entryCurrency" onclick="openCurrencyPopup(this)"><option value="YER" selected>يمني</option><option value="SAR">سعودي</option><option value="USD">دولار</option></select>
+                        <label>نوع القيد:</label>
+                        <div style="display:flex; gap:12px; margin-bottom:8px;">
+                            <button id="typeCreditBtn" class="quick-tab active" style="flex:1;" onclick="setEntryType('credit', this)"><i class='bx bx-plus-circle'></i> له (دائن)</button>
+                            <button id="typeDebitBtn" class="quick-tab" style="flex:1;" onclick="setEntryType('debit', this)"><i class='bx bx-minus-circle'></i> عليه (مدين)</button>
+                        </div>
+                        <label>المبلغ:</label>
+                        <input type="number" id="entryAmount" placeholder="0.00" oninput="watchAmountInput(this, 'amountFeedback')">
+                        <div id="amountFeedback" style="font-size:11px; margin-bottom:8px; color:var(--hint-color);"></div>
+                        <label>البيان:</label>
+                        <textarea id="entryStatement" placeholder="تفاصيل القيد المحاسبي..." style="height:70px; resize:none;"></textarea>
+                        <button class="btn-item" style="justify-content:center; background:var(--cyan-neon); color:#090d16; font-weight:800; width:100%; border:none; margin-top:8px;" onclick="saveNewEntry()"><i class='bx bx-save'></i> حفظ وترحيل القيد</button>
+                    </div>
+                </div>
+                <div id="transferAccountsContent" class="quick-tab-content" style="display:none;">
+                    <div class="invoice-glass-card">
+                        <h3><i class='bx bx-transfer'></i> تحويل بين الحسابات</h3>
+                        <div style="display:flex; gap:8px; margin-bottom:10px;">
+                            <button id="transferReceiveBtn" class="quick-tab active" style="flex:1;" onclick="setTransferMode('receive', this)"><i class='bx bx-down-arrow-circle'></i> استلام حوالة</button>
+                            <button id="transferSendBtn" class="quick-tab" style="flex:1;" onclick="setTransferMode('send', this)"><i class='bx bx-up-arrow-circle'></i> إرسال حوالة</button>
+                        </div>
+                        <label>من حساب:</label>
+                        <select id="transferFromAccount" onfocus="populateGenericSelect(this);"><option value="">اختر الحساب المصدر</option></select>
+                        <label>إلى حساب:</label>
+                        <select id="transferToAccount" onfocus="populateGenericSelect(this);"><option value="">اختر الحساب الهدف</option></select>
+                        <label>الصندوق:</label>
+                        <select><option value="main_box" selected>🏦 الصندوق الرئيسي</option></select>
+                        <label>المبلغ:</label>
+                        <input type="number" id="transferAmount" placeholder="0.00">
+                        <label>العملة:</label>
+                        <select onclick="openCurrencyPopup(this)"><option value="YER" selected>يمني</option><option value="SAR">سعودي</option><option value="USD">دولار</option></select>
+                        <div id="transferCommissionContainer" style="display:none;">
+                            <label>العمولة (اختياري):</label>
+                            <input type="number" id="transferCommission" placeholder="0.00">
+                        </div>
+                        <label>البيان:</label>
+                        <textarea placeholder="سبب التحويل..." style="height:60px; resize:none;"></textarea>
+                        <button class="btn-item" style="justify-content:center; background:var(--cyan-neon); color:#090d16; font-weight:800; width:100%; border:none; margin-top:8px;" onclick="showToastAndSave('تحويل بين الحسابات')"><i class='bx bx-save'></i> ترحيل التحويل</button>
+                    </div>
+                </div>
+                <div id="currencyExchangeContent" class="quick-tab-content" style="display:none;">
+                    <div class="invoice-glass-card">
+                        <h3><i class='bx bx-refresh'></i> مصارفة</h3>
+                        <div style="display:flex; gap:8px; margin-bottom:12px;">
+                            <button id="exchangeClientTab" class="quick-tab active" style="flex:1;" onclick="switchExchangeMode('client', this)"><i class='bx bx-user'></i> مصارفة عميل</button>
+                            <button id="exchangeBoxTab" class="quick-tab" style="flex:1;" onclick="switchExchangeMode('box', this)"><i class='bx bx-bank'></i> مصارفة صندوق</button>
+                        </div>
+                        <div id="exchangeClientContent">
+                            <label><i class='bx bx-user'></i> العميل:</label>
+                            <div style="display:flex; gap:8px; margin-bottom:8px;">
+                                <select id="exClientSelect" style="flex:1;" onfocus="populateGenericSelect(this);"><option value="">اختر العميل</option></select>
+                                <button onclick="openAccountSearchPopup()" style="background:transparent; border:1px solid rgba(0,242,254,0.2); border-radius:10px; padding:0 10px; cursor:pointer; color:var(--cyan-neon); font-weight:700;"><i class='bx bx-search'></i></button>
+                            </div>
+                            <div class="buy-sell-toggle">
+                                <button id="exSellBtn" class="active-sell" onclick="setExchangeDirection('sell', this)">بيع</button>
+                                <button id="exBuyBtn" onclick="setExchangeDirection('buy', this)">شراء</button>
+                            </div>
+                            <label>💱 من عملة:</label>
+                            <select id="exFromCurrency" onclick="openCurrencyPopup(this)"><option value="SAR">سعودي</option><option value="YER">يمني</option><option value="USD">دولار</option></select>
+                            <label>💱 إلى عملة:</label>
+                            <select id="exToCurrency" onclick="openCurrencyPopup(this)"><option value="YER" selected>يمني</option><option value="SAR">سعودي</option><option value="USD">دولار</option></select>
+                            <div class="exchange-rate-row">
+                                <div style="flex:1;"><label>💰 المبلغ:</label><input type="number" id="exAmount" placeholder="0.00" oninput="updateExchangeCalc()"></div>
+                                <div style="flex:1;"><label>💹 سعر الصرف:</label><input type="number" id="exRate" placeholder="139.5" value="139.5" oninput="updateExchangeCalc()"></div>
+                            </div>
+                            <div class="exchange-result" id="exResultClient">📌 النتيجة: <strong style="color:#fff;" id="exResultValueClient">0.0</strong></div>
+                            <label>🏦 الصندوق:</label>
+                            <select id="exBox"><option value="main_box" selected>🏦 الصندوق الرئيسي</option></select>
+                            <button class="btn-item" style="justify-content:center; background:var(--cyan-neon); color:#090d16; font-weight:800; width:100%; border:none;" onclick="executeExchange('client')"><i class='bx bx-save'></i> تنفيذ المصارفة</button>
+                        </div>
+                        <div id="exchangeBoxContent" style="display:none;">
+                            <div class="buy-sell-toggle">
+                                <button id="exSellBtnBox" class="active-sell" onclick="setExchangeDirectionBox('sell', this)">بيع</button>
+                                <button id="exBuyBtnBox" onclick="setExchangeDirectionBox('buy', this)">شراء</button>
+                            </div>
+                            <label>💱 من عملة:</label>
+                            <select id="exFromCurrencyBox" onclick="openCurrencyPopup(this)"><option value="SAR">سعودي</option><option value="YER">يمني</option><option value="USD">دولار</option></select>
+                            <label>💱 إلى عملة:</label>
+                            <select id="exToCurrencyBox" onclick="openCurrencyPopup(this)"><option value="YER" selected>يمني</option><option value="SAR">سعودي</option><option value="USD">دولار</option></select>
+                            <div class="exchange-rate-row">
+                                <div style="flex:1;"><label>💰 المبلغ:</label><input type="number" id="exAmountBox" placeholder="0.00" oninput="updateExchangeCalcBox()"></div>
+                                <div style="flex:1;"><label>💹 سعر الصرف:</label><input type="number" id="exRateBox" placeholder="139.5" value="139.5" oninput="updateExchangeCalcBox()"></div>
+                            </div>
+                            <div class="exchange-result" id="exResultBox">📌 النتيجة: <strong style="color:#fff;" id="exResultValueBox">0.0</strong></div>
+                            <label>🏦 الصندوق:</label>
+                            <select id="exBoxOnly"><option value="main_box" selected>🏦 الصندوق الرئيسي</option></select>
+                            <button class="btn-item" style="justify-content:center; background:var(--cyan-neon); color:#090d16; font-weight:800; width:100%; border:none;" onclick="executeExchange('box')"><i class='bx bx-save'></i> تنفيذ المصارفة</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- صفحة إضافة حساب -->
+            <div id="addAccountPage" class="page">
+                <button class="back-btn" onclick="switchPage('mainPage')" style="margin-bottom:10px;"><i class='bx bx-arrow-back'></i> رجوع</button>
+                <div class="invoice-glass-card">
+                    <h3><i class='bx bx-user-plus'></i> إضافة حساب جديد</h3>
+                    <label>الاسم:</label><input type="text" id="accName" placeholder="اسم الحساب">
+                    <label>رقم الهاتف:</label>
+                    <div style="display:flex; gap:8px;">
+                        <input type="tel" id="accPhone" placeholder="رقم الهاتف" style="flex:1;">
+                        <button onclick="openContacts()" style="background:transparent; border:1px solid rgba(0,242,254,0.2); border-radius:10px; padding:0 12px; cursor:pointer; color:var(--cyan-neon); font-weight:700; font-family:'Cairo';"><i class='bx bx-phone'></i> جهات الاتصال</button>
+                    </div>
+                    <label>ملاحظات:</label><textarea id="accNotes" placeholder="ملاحظات..." style="height:60px; resize:none;"></textarea>
+                    <button class="btn-item" style="justify-content:center; background:var(--cyan-neon); color:#090d16; font-weight:800; width:100%; border:none; margin-top:8px;" onclick="saveNewAccount()"><i class='bx bx-save'></i> حفظ الحساب</button>
+                </div>
+            </div>
+
+            <!-- صفحة الفواتير -->
+            <div id="invoicePage" class="page">
+                <button class="back-btn" onclick="switchPage('mainPage')" style="margin-bottom:10px;"><i class='bx bx-arrow-back'></i> رجوع</button>
+                <div class="invoice-glass-card">
+                    <h3><i class='bx bx-receipt'></i> فاتورة كهرباء جديدة</h3>
+                    <label>المشترك:</label>
+                    <div style="display:flex; gap:8px; margin-bottom:8px;">
+                        <input type="text" id="customerNameNew" placeholder="اسم المشترك" style="flex:1;" onchange="updateInvoicePrevReading()">
+                        <button onclick="openAccountSearchPopup()" style="background:transparent; border:1px solid rgba(0,242,254,0.2); border-radius:10px; padding:0 10px; cursor:pointer; color:var(--cyan-neon); font-weight:700;"><i class='bx bx-search'></i></button>
+                    </div>
+                    <label>القراءة السابقة:</label><span id="prevReadingValue" style="display:block; padding:8px; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:8px;">0.0</span>
+                    <label>القراءة الحالية:</label>
+                    <div style="display:flex; gap:8px;">
+                        <input type="number" id="currentReadingNew" placeholder="القراءة الحالية" style="flex:1;">
+                        <button onclick="openCamera()" style="background:transparent; border:1px solid rgba(0,242,254,0.2); border-radius:10px; padding:0 12px; cursor:pointer; color:var(--cyan-neon); font-weight:700; font-family:'Cairo';"><i class='bx bx-camera'></i> تصوير</button>
+                    </div>
+                    <label>العملة:</label>
+                    <div style="display:flex; gap:12px; margin-bottom:8px;">
+                        <label style="color:#fff;"><input type="radio" name="invoiceCurrencyNew" value="YER" checked> يمني</label>
+                        <label style="color:#fff;"><input type="radio" name="invoiceCurrencyNew" value="SAR"> سعودي</label>
+                        <label style="color:#fff;"><input type="radio" name="invoiceCurrencyNew" value="USD"> دولار</label>
+                    </div>
+                    <button class="btn-item" style="justify-content:center; background:var(--cyan-neon); color:#090d16; font-weight:800; width:100%; border:none; margin-top:8px;" onclick="saveNewInvoice()"><i class='bx bx-save'></i> حفظ الفاتورة</button>
+                </div>
+            </div>
+
+            <!-- صفحة القيود -->
+            <div id="entriesPage" class="page">
+                <button class="back-btn" onclick="switchPage('mainPage')" style="margin-bottom:10px;"><i class='bx bx-arrow-back'></i> رجوع</button>
+                <div class="filter-tabs">
+                    <button class="tab-btn active" onclick="filterEntries('all', this)">الكل</button>
+                    <button class="tab-btn" onclick="filterEntries('today', this)">اليوم</button>
+                    <button class="tab-btn" onclick="filterEntries('week', this)">هذا الأسبوع</button>
+                    <button class="tab-btn" onclick="filterEntries('month', this)">هذا الشهر</button>
+                    <button class="tab-btn" onclick="refreshDataWithLoader(this)" style="background:transparent;"><i class='bx bx-refresh'></i></button>
+                </div>
+                <div class="search-wrapper"><input type="text" class="search-box" placeholder="🔎 بحث في القيود..." oninput="searchEntriesLive(this.value)"></div>
+                <div class="stats-grid-entries">
+                    <div class="stat-box"><div class="stat-val" id="entriesCount">0</div><div class="stat-lbl">القيود</div></div>
+                    <div class="stat-box"><div class="stat-val" style="color:#10b981;" id="totalCredit">0</div><div class="stat-lbl">دائن</div></div>
+                    <div class="stat-box"><div class="stat-val" style="color:#ef4444;" id="totalDebit">0</div><div class="stat-lbl">مدين</div></div>
+                    <div class="stat-box"><div class="stat-val" style="color:#00F2FE;" id="netBalance">0</div><div class="stat-lbl">الصافي</div></div>
+                </div>
+                <div id="entriesList"></div>
+            </div>
+
+            <!-- صفحة كشف حساب -->
+            <div id="accountStatementPage" class="page">
+                <button class="back-btn" onclick="switchPage('mainPage')" style="margin-bottom:10px;"><i class='bx bx-arrow-back'></i> رجوع</button>
+                <div class="invoice-glass-card">
+                    <h3><i class='bx bx-file'></i> كشف حساب</h3>
+                    <label>الحساب:</label>
+                    <select onfocus="populateGenericSelect(this);"><option value="">اختر الحساب</option></select>
+                    <label>من تاريخ:</label><input type="date" id="dateFrom">
+                    <label>إلى تاريخ:</label><input type="date" id="dateTo">
+                    <button class="btn-item" style="justify-content:center; background:var(--cyan-neon); color:#090d16; font-weight:800; width:100%; border:none; margin-top:8px;" onclick="showToast('📋 تم عرض كشف الحساب')"><i class='bx bx-search-alt'></i> عرض كشف الحساب</button>
+                </div>
+            </div>
+
+            <!-- صفحة دليل الحسابات -->
+            <div id="directoryPage" class="page">
+                <button class="back-btn" onclick="switchPage('mainPage')" style="margin-bottom:10px;"><i class='bx bx-arrow-back'></i> رجوع</button>
+                <div class="invoice-glass-card">
+                    <h3><i class='bx bx-book'></i> دليل الحسابات</h3>
+                    <div id="directoryList"></div>
+                </div>
+            </div>
+
+            <!-- صفحة إدارة الموظفين -->
+            <div id="staffManagementPage" class="page">
+                <button class="back-btn" onclick="switchPage('mainPage')" style="margin-bottom:10px;"><i class='bx bx-arrow-back'></i> رجوع</button>
+                <div class="invoice-glass-card">
+                    <h3><i class='bx bx-user-plus'></i> إضافة موظف</h3>
+                    <label>اسم الموظف:</label><input type="text" id="staffName" placeholder="اسم الموظف">
+                    <label>رقم الهاتف:</label><input type="tel" id="staffPhone" placeholder="رقم الهاتف">
+                    <label>اسم المستخدم:</label><input type="text" id="staffUsername" placeholder="اسم المستخدم">
+                    <label>كلمة المرور:</label><input type="password" id="staffPassword" placeholder="كلمة المرور">
+                    <label>تأكيد كلمة المرور:</label><input type="password" id="staffConfirmPassword" placeholder="تأكيد كلمة المرور">
+                    <button class="btn-item" style="justify-content:center; background:var(--cyan-neon); color:#090d16; font-weight:800; width:100%; border:none; margin-top:8px;" onclick="saveNewStaff()"><i class='bx bx-save'></i> حفظ وإرسال الدعوة</button>
+                    <div id="staffCredentialsContainer" style="display:none;"></div>
+                </div>
+            </div>
+
+            <!-- صفحة إعدادات واتساب -->
+            <div id="whatsappSettingsPage" class="page">
+                <div class="invoice-glass-card">
+                    <h3><i class='bx bxl-whatsapp'></i> إعدادات إشعارات الواتساب</h3>
+                    <div style="background:rgba(0,242,254,0.04); border:1px solid var(--cyan-neon); border-radius:12px; padding:12px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;">
+                        <div><div style="font-weight:700; color:#fff;">حالة الخادم</div><div id="whatsappStatusText" style="font-size:12px; color:var(--hint-color);">غير متصل</div></div>
+                        <div id="whatsappStatusIcon" style="font-size:24px;">🔴</div>
+                    </div>
+                    <div style="margin-bottom:16px;">
+                        <div class="permission-item"><span>إشعار حفظ قيد جديد</span><label class="switch-modern"><input type="checkbox" id="notifyNewEntry" checked onchange="saveWhatsAppSettings()"><span class="slider-modern"></span></label></div>
+                        <div class="permission-item"><span>إشعار تعديل قيد</span><label class="switch-modern"><input type="checkbox" id="notifyEditEntry" checked onchange="saveWhatsAppSettings()"><span class="slider-modern"></span></label></div>
+                        <div class="permission-item"><span>إشعار حذف قيد</span><label class="switch-modern"><input type="checkbox" id="notifyDeleteEntry" checked onchange="saveWhatsAppSettings()"><span class="slider-modern"></span></label></div>
+                        <div class="permission-item"><span>إشعار فاتورة جديدة</span><label class="switch-modern"><input type="checkbox" id="notifyInvoice" checked onchange="saveWhatsAppSettings()"><span class="slider-modern"></span></label></div>
+                        <div class="permission-item"><span>إشعار مصارفة / تحويل</span><label class="switch-modern"><input type="checkbox" id="notifyExchange" checked onchange="saveWhatsAppSettings()"><span class="slider-modern"></span></label></div>
+                    </div>
+                    <button class="btn-item full-width" style="justify-content:center; background:var(--cyan-neon); color:#090d16; font-weight:800; border:none; margin-bottom:8px;" onclick="showWhatsAppQR()"><i class='bx bx-qr-scan'></i> ربط الواتساب (مسح الباركود)</button>
+                    <button class="btn-item full-width" style="justify-content:center; background:var(--success-color); color:#fff; font-weight:800; border:none; margin-bottom:8px;" onclick="checkWhatsAppStatus()"><i class='bx bx-refresh'></i> التحقق من الاتصال</button>
+                    <button class="back-btn" onclick="switchPage('mainPage')"><i class='bx bx-arrow-back'></i> رجوع للإعدادات</button>
+                </div>
+            </div>
+
+            <!-- صفحة تغيير كلمة السر -->
+            <div id="changePasswordPage" class="page">
+                <button class="back-btn" onclick="switchPage('mainPage')" style="margin-bottom:10px;"><i class='bx bx-arrow-back'></i> رجوع</button>
+                <div class="invoice-glass-card">
+                    <h3><i class='bx bx-lock-alt'></i> تغيير كلمة السر</h3>
+                    <label>كلمة المرور القديمة:</label><input type="password" id="oldPassword" placeholder="كلمة المرور القديمة">
+                    <label>كلمة المرور الجديدة:</label><input type="password" id="newPassword" placeholder="كلمة المرور الجديدة">
+                    <label>تأكيد كلمة المرور الجديدة:</label><input type="password" id="confirmNewPassword" placeholder="تأكيد كلمة المرور الجديدة">
+                    <button class="btn-item" style="justify-content:center; background:var(--cyan-neon); color:#090d16; font-weight:800; width:100%; border:none; margin-top:8px;" onclick="changePassword()"><i class='bx bx-save'></i> حفظ كلمة السر الجديدة</button>
+                </div>
+            </div>
+
+            <!-- صفحات بسيطة وهمية -->
+            <div id="editProfilePage" class="page"><div class="invoice-glass-card"><h3><i class='bx bx-edit'></i> تعديل البيانات</h3><p style="color:var(--hint-color);">قيد التطوير...</p><button class="back-btn" onclick="switchPage('mainPage')"><i class='bx bx-arrow-back'></i> رجوع</button></div></div>
+            <div id="mainCurrencyPage" class="page"><div class="invoice-glass-card"><h3><i class='bx bx-money'></i> العملة الرئيسية</h3><button class="currency-option" onclick="setMainCurrency('YER')">يمني</button><button class="currency-option" onclick="setMainCurrency('SAR')">سعودي</button><button class="currency-option" onclick="setMainCurrency('USD')">دولار</button><p id="mainCurrencyFeedback" style="color:var(--cyan-neon);"></p><button class="back-btn" onclick="switchPage('mainPage')"><i class='bx bx-arrow-back'></i> رجوع</button></div></div>
+            <div id="notificationsPage" class="page"><div class="invoice-glass-card"><h3><i class='bx bx-bell'></i> الإشعارات</h3><p style="color:var(--hint-color);">قيد التطوير...</p><button class="back-btn" onclick="switchPage('mainPage')"><i class='bx bx-arrow-back'></i> رجوع</button></div></div>
+            <div id="generalSettingsPage" class="page"><div class="invoice-glass-card"><h3><i class='bx bx-slider-alt'></i> الإعدادات العامة</h3><label>رفع الشعار:</label><input type="file" accept="image/*" onchange="uploadLogo(this)"><button class="btn-item" style="margin-top:8px; background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.3); color:#ef4444;" onclick="deleteLogo()"><i class='bx bx-trash'></i> حذف الشعار</button><button class="back-btn" onclick="switchPage('mainPage')"><i class='bx bx-arrow-back'></i> رجوع</button></div></div>
+            <div id="boxesPage" class="page"><div class="box-container-card"><div class="box-header-row"><span class="box-card-title"><i class='bx bx-bank'></i> الصناديق المالية</span></div><div class="box-balance-item"><span>الصندوق الرئيسي</span><span style="color:var(--success-color);">1,500,000 يمني</span></div><div class="box-balance-converted">≈ 4,285 سعودي | ≈ 1,140 دولار</div><div class="box-card-actions"><button class="box-action-sub-btn add-box-btn"><i class='bx bx-plus'></i> إضافة صندوق</button><button class="box-action-sub-btn"><i class='bx bx-transfer'></i> تحويل</button></div></div><button class="back-btn" onclick="switchPage('mainPage')"><i class='bx bx-arrow-back'></i> رجوع</button></div>
+            <div id="servicesPage" class="page"><div class="invoice-glass-card"><h3><i class='bx bx-folder'></i> جميع الخدمات</h3><p style="color:var(--hint-color);">قيد التطوير...</p><button class="back-btn" onclick="switchPage('mainPage')"><i class='bx bx-arrow-back'></i> رجوع</button></div></div>
+            <div id="reportsPage" class="page"><div class="invoice-glass-card"><h3><i class='bx bx-bar-chart-alt-2'></i> التقارير المالية</h3><p style="color:var(--hint-color);">قيد التطوير...</p><button class="back-btn" onclick="switchPage('mainPage')"><i class='bx bx-arrow-back'></i> رجوع</button></div></div>
+            <div id="redeemPointsPage" class="page"><div class="invoice-glass-card"><h3><i class='bx bx-gift'></i> استبدال النقاط</h3><p style="color:var(--hint-color);">قيد التطوير...</p><button class="back-btn" onclick="switchPage('mainPage')"><i class='bx bx-arrow-back'></i> رجوع</button></div></div>
+            <div id="referralPage" class="page"><div class="invoice-glass-card"><h3><i class='bx bx-link'></i> رابط الإحالة</h3><button class="btn-item" onclick="copyReferralLink()"><i class='bx bx-copy'></i> نسخ الرابط</button><button class="back-btn" onclick="switchPage('mainPage')"><i class='bx bx-arrow-back'></i> رجوع</button></div></div>
+            <div id="controlPanelPage" class="page"><div class="invoice-glass-card"><h3><i class='bx bx-mobile-alt'></i> لوحة تحكم النظام الأساسية</h3><p style="color:var(--hint-color);">قيد التطوير...</p><button class="back-btn" onclick="switchPage('mainPage')"><i class='bx bx-arrow-back'></i> رجوع</button></div></div>
+            <div id="utilitySystemPage" class="page"><div class="invoice-glass-card"><h3><i class='bx bx-receipt'></i> نظام فواتير الكهرباء</h3><p style="color:var(--hint-color);">قيد التطوير...</p><button class="back-btn" onclick="switchPage('mainPage')"><i class='bx bx-arrow-back'></i> رجوع</button></div></div>
+        </div>
+    </div>
+
+    <script>
+        var tg = window.Telegram ? window.Telegram.WebApp : null;
+        if (tg) { try { tg.ready();
+                tg.expand(); } catch (e) {} }
+
+        const WHATSAPP_SERVER = 'https://eltizam-pro-whatsapp.onrender.com';
+
+        var pendingDeleteTarget = null;
+        var mockEntries = [];
+        var mockAccounts = [];
+        var mainCurrency = 'YER';
+        var entryType = 'credit';
+        var transferMode = 'receive';
+        var appLogo = null;
+        var exchangeMode = 'client';
+        var exchangeDirection = 'sell';
+        var exchangeDirectionBox = 'sell';
+        var isAuthLoginMode = false;
+        var authCurrentRole = 'admin';
+        var currentUser = null;
+        var targetCurrencySelect = null;
+        var previousPage = 'mainPage';
+
+        var whatsappSettings = { notifyNewEntry: true, notifyEditEntry: true, notifyDeleteEntry: true, notifyInvoice: true,
+            notifyExchange: true };
+
+        function loadWhatsAppSettings() {
+            var saved = localStorage.getItem('whatsapp_settings');
+            if (saved) { try { whatsappSettings = JSON.parse(saved); } catch (e) {} }
+            var elNotifyNew = document.getElementById('notifyNewEntry');
+            if (elNotifyNew) elNotifyNew.checked = whatsappSettings.notifyNewEntry;
+            var elNotifyEdit = document.getElementById('notifyEditEntry');
+            if (elNotifyEdit) elNotifyEdit.checked = whatsappSettings.notifyEditEntry;
+            var elNotifyDel = document.getElementById('notifyDeleteEntry');
+            if (elNotifyDel) elNotifyDel.checked = whatsappSettings.notifyDeleteEntry;
+            var elNotifyInv = document.getElementById('notifyInvoice');
+            if (elNotifyInv) elNotifyInv.checked = whatsappSettings.notifyInvoice;
+            var elNotifyEx = document.getElementById('notifyExchange');
+            if (elNotifyEx) elNotifyEx.checked = whatsappSettings.notifyExchange;
+        }
+
+        function saveWhatsAppSettings() {
+            var elNotifyNew = document.getElementById('notifyNewEntry');
+            var elNotifyEdit = document.getElementById('notifyEditEntry');
+            var elNotifyDel = document.getElementById('notifyDeleteEntry');
+            var elNotifyInv = document.getElementById('notifyInvoice');
+            var elNotifyEx = document.getElementById('notifyExchange');
+            whatsappSettings.notifyNewEntry = elNotifyNew ? elNotifyNew.checked : true;
+            whatsappSettings.notifyEditEntry = elNotifyEdit ? elNotifyEdit.checked : true;
+            whatsappSettings.notifyDeleteEntry = elNotifyDel ? elNotifyDel.checked : true;
+            whatsappSettings.notifyInvoice = elNotifyInv ? elNotifyInv.checked : true;
+            whatsappSettings.notifyExchange = elNotifyEx ? elNotifyEx.checked : true;
+            localStorage.setItem('whatsapp_settings', JSON.stringify(whatsappSettings));
+        }
+
+        async function checkWhatsAppStatus() {
+            try {
+                var res = await fetch(WHATSAPP_SERVER + '/whatsapp/status');
+                var data = await res.json();
+                var connected = data.status === 'connected';
+                var stEl = document.getElementById('whatsappStatusText');
+                var icEl = document.getElementById('whatsappStatusIcon');
+                if (stEl) stEl.innerText = connected ? 'متصل' : 'غير متصل';
+                if (icEl) icEl.innerText = connected ? '🟢' : '🔴';
+            } catch (e) {
+                var stEl2 = document.getElementById('whatsappStatusText');
+                var icEl2 = document.getElementById('whatsappStatusIcon');
+                if (stEl2) stEl2.innerText = 'غير متصل';
+                if (icEl2) icEl2.innerText = '🔴';
+            }
+        }
+
+        function showWhatsAppQR() {
+            var popup = document.createElement('div');
+            popup.style.cssText =
+                'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:99999;display:flex;justify-content:center;align-items:center;';
+            popup.onclick = function() { document.body.removeChild(popup); };
+            var img = document.createElement('img');
+            img.src = WHATSAPP_SERVER + '/whatsapp/qr';
+            img.style.cssText = 'max-width:90%;max-height:90%;border-radius:16px;';
+            img.onclick = function(e) { e.stopPropagation(); };
+            popup.appendChild(img);
+            document.body.appendChild(popup);
+        }
+
+        async function sendWhatsApp(phone, message) {
+            if (!phone) return;
+            try {
+                await fetch(WHATSAPP_SERVER + '/whatsapp/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: phone, message: message })
+                });
+            } catch (e) {}
+        }
+
+        function getAccountPhone(name) {
+            var acc = mockAccounts.find(a => a.name === name);
+            return acc ? acc.phone : '';
+        }
+
+        function formatWhatsAppMessage(type, data) {
+            switch (type) {
+                case 'new_entry':
+                    return '📝 *قيد جديد*\n👤 الحساب: ' + data.account + '\n💰 المبلغ: ' + data.amount + ' ' + data.currency +
+                        '\n🧾 النوع: ' + (data.type === 'credit' ? 'له' : 'عليه') + '\n📄 البيان: ' + data.statement;
+                case 'edit_entry':
+                    return '✏️ *تم تعديل قيد*\n👤 الحساب: ' + data.account + '\n💰 المبلغ: ' + data.oldAmount + ' ➜ ' + data
+                        .newAmount + ' ' + data.currency + '\n📄 البيان: ' + data.oldStatement + ' ➜ ' + data.newStatement;
+                case 'delete_entry':
+                    return '🗑️ *تم حذف قيد*\n👤 الحساب: ' + data.account + '\n💰 المبلغ: ' + data.amount + ' ' + data.currency +
+                        '\n📄 البيان: ' + data.statement;
+                case 'invoice':
+                    return '🧾 *فاتورة كهرباء*\n👤 المشترك: ' + data.customer + '\n⚡ القراءة: ' + data.reading + '\n💵 المبلغ: ' +
+                        data.amount + ' ' + data.currency + '\n📌 النوع: عليكم';
+                case 'exchange':
+                    return '💱 *مصارفة*\n👤 العميل: ' + data.client + '\n💰 من: ' + data.fromAmount + ' ' + data.fromCurrency +
+                        '\n💱 إلى: ' + data.toAmount + ' ' + data.toCurrency;
+                case 'transfer':
+                    return '🔄 *تحويل*\n👤 من: ' + data.from + '\n👤 إلى: ' + data.to + '\n💰 المبلغ: ' + data.amount + ' ' + data
+                        .currency;
+                default:
+                    return '';
+            }
+        }
+
+        function checkAuth() {
+            var saved = localStorage.getItem('eltizam_pro_user');
+            if (saved) {
+                try {
+                    currentUser = JSON.parse(saved);
+                    showDashboard();
+                    return;
+                } catch (e) { localStorage.removeItem('eltizam_pro_user'); }
+            }
+            showAuthScreen();
+        }
+
+        function showAuthScreen() {
+            document.getElementById('authOverlay').classList.remove('hidden');
+            document.getElementById('dashboardContainer').classList.add('hidden');
+        }
+
+        function showDashboard() {
+            document.getElementById('authOverlay').classList.add('hidden');
+            document.getElementById('dashboardContainer').classList.remove('hidden');
+            if (currentUser && currentUser.name) {
+                document.getElementById('dashboardUserName').innerText = currentUser.name;
+            }
+            updateAllDateFields();
+            renderEntriesList();
+            updateEntriesStats();
+            updateStats();
+            populateEntryAccountSelect();
+            updateDirectoryList();
+            loadWhatsAppSettings();
+            checkWhatsAppStatus();
+            switchQuickTab('addEntryContent', document.querySelector('#addEntryPage .quick-tab'));
+            switchExchangeMode('client', document.getElementById('exchangeClientTab'));
+        }
+
+        function setAuthRole(role) {
+            if (isAuthLoginMode) return;
+            authCurrentRole = role;
+            document.getElementById('btn-admin').classList.toggle('active', role === 'admin');
+            document.getElementById('btn-employee').classList.toggle('active', role === 'employee');
+            document.getElementById('authTitle').innerText = role === 'admin' ? 'إنشاء حساب مدير' : 'إنشاء حساب موظف';
+        }
+
+        function toggleAuthMode() {
+            isAuthLoginMode = !isAuthLoginMode;
+            var roleContainer = document.getElementById('role-container');
+            if (roleContainer) {
+                if (isAuthLoginMode) {
+                    roleContainer.style.display = 'none';
+                } else {
+                    roleContainer.style.display = 'flex';
+                }
+            }
+            document.getElementById('authTitle').innerText = isAuthLoginMode ? 'تسجيل الدخول' : (authCurrentRole === 'admin' ?
+                'إنشاء حساب مدير' : 'إنشاء حساب موظف');
+            document.getElementById('authToggleText').innerText = isAuthLoginMode ? 'إنشاء حساب جديد؟' :
+                'هل لديك حساب مسبقاً؟ سجل دخولك';
+            var submitBtn = document.querySelector('#auth-form-content .auth-main-btn');
+            if (submitBtn) submitBtn.innerText = isAuthLoginMode ? 'تسجيل الدخول' : 'إنشاء الحساب';
+
+            // إخفاء/إظهار الحقول حسب الوضع
+            document.getElementById('authName').parentElement.style.display = isAuthLoginMode ? 'none' : 'block';
+            document.getElementById('authName').style.display = isAuthLoginMode ? 'none' : 'block';
+            document.getElementById('authConfirmPassword').parentElement.style.display = isAuthLoginMode ? 'none' : 'block';
+            document.getElementById('authConfirmPassword').style.display = isAuthLoginMode ? 'none' : 'block';
+
+            if (isAuthLoginMode) {
+                document.getElementById('authName').closest('div') && (document.getElementById('authName').closest('div')
+                    .previousElementSibling && (document.getElementById('authName').closest('div').previousElementSibling
+                        .style.display = 'none'));
+                document.getElementById('authName').style.display = 'none';
+                document.getElementById('authConfirmPassword').style.display = 'none';
+                document.getElementById('authNameError').style.display = 'none';
+                document.getElementById('authConfirmError').style.display = 'none';
+            } else {
+                document.getElementById('authName').style.display = 'block';
+                document.getElementById('authConfirmPassword').style.display = 'block';
+            }
+            hideAllAuthErrors();
+        }
+
+        function hideAllAuthErrors() {
+            var errors = document.querySelectorAll('.auth-error-msg');
+            errors.forEach(function(e) { e.classList.remove('show');
+                e.style.display = 'none'; });
+            var inputs = document.querySelectorAll('#authOverlay input');
+            inputs.forEach(function(i) { i.classList.remove('error-shake'); });
+        }
+
+        function showAuthError(inputId, errorId, message) {
+            var input = document.getElementById(inputId);
+            var error = document.getElementById(errorId);
+            if (input) { input.classList.add('error-shake');
+                setTimeout(function() { input.classList.remove('error-shake'); }, 500); }
+            if (error) { error.innerText = message;
+                error.classList.add('show');
+                error.style.display = 'block'; }
+        }
+
+        function handleAuthSubmit() {
+            hideAllAuthErrors();
+            var name = document.getElementById('authName').value.trim();
+            var phone = document.getElementById('authPhone').value.trim();
+            var password = document.getElementById('authPassword').value;
+            var confirmPassword = document.getElementById('authConfirmPassword').value;
+
+            if (!isAuthLoginMode) {
+                if (!name) { showAuthError('authName', 'authNameError', '⚠️ يرجى إدخال الاسم الكامل!'); return; }
+                if (!phone) { showAuthError('authPhone', 'authPhoneError', '⚠️ يرجى إدخال رقم الهاتف!'); return; }
+                if (!password) { showAuthError('authPassword', 'authPasswordError', '⚠️ يرجى إدخال كلمة المرور!'); return; }
+                if (password !== confirmPassword) { showAuthError('authConfirmPassword', 'authConfirmError',
+                        '❌ تأكيد كلمة المرور غير مطابق!'); return; }
+                // التحقق من وجود الرقم
+                var existing = localStorage.getItem('eltizam_pro_user');
+                if (existing) {
+                    try {
+                        var exUser = JSON.parse(existing);
+                        if (exUser.phone === phone) { showAuthError('authPhone', 'authPhoneError',
+                                '⚠️ رقم الهاتف مسجل في حساب آخر!'); return; }
+                    } catch (e) {}
+                }
+                var newUser = { name: name, phone: phone, password: password, role: authCurrentRole };
+                localStorage.setItem('eltizam_pro_user', JSON.stringify(newUser));
+                currentUser = newUser;
+                showSuccessOverlay('تم إنشاء الحساب بنجاح!', 'مرحباً ' + name + '! تم إنشاء حسابك بنجاح.');
+                setTimeout(function() { showDashboard();
+                    showToast('✨ تم إنشاء الحساب بنجاح! مرحباً ' + name + '!'); }, 1200);
+            } else {
+                if (!phone) { showAuthError('authPhone', 'authPhoneError', '⚠️ يرجى إدخال رقم الهاتف!'); return; }
+                if (!password) { showAuthError('authPassword', 'authPasswordError', '⚠️ يرجى إدخال كلمة المرور!'); return; }
+                var saved = localStorage.getItem('eltizam_pro_user');
+                if (saved) {
+                    var savedUser = JSON.parse(saved);
+                    if (savedUser.phone === phone && savedUser.password === password) {
+                        currentUser = savedUser;
+                        showSuccessOverlay('تم تسجيل الدخول بنجاح!', '👋 مرحباً بعودتك ' + savedUser.name + '!');
+                        setTimeout(function() { showDashboard();
+                            showToast('👋 مرحباً بعودتك ' + savedUser.name + '!'); }, 1200);
+                    } else {
+                        showAuthError('authPhone', 'authPhoneError', '❌ رقم الهاتف أو كلمة المرور غير صحيحة!');
+                        showAuthError('authPassword', 'authPasswordError', '❌ رقم الهاتف أو كلمة المرور غير صحيحة!');
+                    }
+                } else {
+                    showAuthError('authPhone', 'authPhoneError', '⚠️ لا يوجد حساب مسجل. الرجاء إنشاء حساب جديد.');
+                }
+            }
+            // مسح الحقول
+            document.getElementById('authName').value = '';
+            document.getElementById('authPhone').value = '';
+            document.getElementById('authPassword').value = '';
+            document.getElementById('authConfirmPassword').value = '';
+        }
+
+        function showSuccessOverlay(title, message) {
+            document.getElementById('successTitle').innerText = title || 'تم بنجاح!';
+            document.getElementById('successMessage').innerText = message || 'تمت العملية بنجاح';
+            document.getElementById('successOverlay').classList.add('show');
+        }
+
+        function closeSuccessOverlay() {
+            document.getElementById('successOverlay').classList.remove('show');
+        }
+
+        function logoutSession() {
+            localStorage.removeItem('eltizam_pro_user');
+            currentUser = null;
+            document.getElementById('dashboardContainer').classList.add('hidden');
+            document.getElementById('authOverlay').classList.remove('hidden');
+            document.getElementById('settingsDropdown').style.display = 'none';
+            showToast('👋 تم تسجيل الخروج بنجاح');
+            if (tg && typeof tg.close === 'function') tg.close();
+        }
+
+        function getCurrentDateTime() {
+            var now = new Date();
+            return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(
+                2, '0') + 'T' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+        }
+
+        function updateAllDateFields() {
+            var dt = getCurrentDateTime();
+            var entryDt = document.getElementById('entryDateTime');
+            if (entryDt && !entryDt.value) entryDt.value = dt;
+            var dateFrom = document.getElementById('dateFrom');
+            var dateTo = document.getElementById('dateTo');
+            if (dateFrom && !dateFrom.value) dateFrom.value = new Date().toISOString().split('T')[0];
+            if (dateTo && !dateTo.value) dateTo.value = new Date().toISOString().split('T')[0];
+            updateStats();
+        }
+
+        function updateStats() {
+            var totalCredit = 0,
+                totalDebt = 0;
+            mockEntries.forEach(function(e) { if (e.type === 'credit') totalCredit += e.amount;
+                else totalDebt += e.amount; });
+            var saEl = document.getElementById('statAccounts');
+            if (saEl) saEl.innerText = mockAccounts.length;
+            var slEl = document.getElementById('statTotalLakom');
+            if (slEl) slEl.innerText = totalCredit.toLocaleString() + ' ' + mainCurrency;
+            var sa2El = document.getElementById('statTotalAlaykom');
+            if (sa2El) sa2El.innerText = totalDebt.toLocaleString();
+            var snEl = document.getElementById('statNetBalance');
+            if (snEl) snEl.innerText = (totalCredit - totalDebt).toLocaleString();
+        }
+
+        function showCustomAlert(title, text) {
+            document.getElementById('alertTitle').innerText = title;
+            document.getElementById('alertMessage').innerText = text;
+            document.getElementById('customAlert').style.display = 'block';
+        }
+
+        function closeCustomAlert() { document.getElementById('customAlert').style.display = 'none'; }
+
+        function showToast(message) {
+            var toast = document.getElementById('toastNotification');
+            toast.innerText = message || '✨ تم حفظ وترحيل المعاملة بنجاح! 🚀';
+            toast.classList.add('show');
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            setTimeout(function() { toast.classList.remove('show'); }, 2500);
+        }
+
+        function showToastAndSave(type) {
+            showCustomAlert('✅ نجاح العملية', 'تم ' + type + ' بنجاح.\nتم مسح المبلغ والبيان فقط.');
+            showToast('✨ تم حفظ وترحيل ' + type + ' بنجاح! 🚀');
+        }
+
+        function openConfirmDialog(targetId, message) {
+            document.getElementById('confirmMessage').innerText = message || 'هل أنت متأكد من حذف هذا القيد؟';
+            pendingDeleteTarget = targetId;
+            document.getElementById('confirmDialog').classList.add('show');
+        }
+
+        function closeConfirmDialog() { document.getElementById('confirmDialog').classList.remove('show');
+            pendingDeleteTarget = null; }
+
+        function executeDelete() {
+            if (pendingDeleteTarget) {
+                mockEntries = mockEntries.filter(function(e) { return e.id !== pendingDeleteTarget; });
+                renderEntriesList();
+                updateEntriesStats();
+                updateStats();
+                showToast('🗑️ تم حذف القيد بنجاح');
+            }
+            closeConfirmDialog();
+        }
+
+        function openAccountSearchPopup() {
+            document.getElementById('accountSearchPopup').classList.add('show');
+            document.getElementById('popupSearchInput').value = '';
+            renderPopupAccounts(mockAccounts);
+        }
+
+        function closeAccountSearchPopup() { document.getElementById('accountSearchPopup').classList.remove('show'); }
+
+        function filterAccountsPopup() {
+            var query = document.getElementById('popupSearchInput').value.toLowerCase();
+            var filtered = mockAccounts.filter(function(a) { return a.name.toLowerCase().includes(query) || a.phone.includes(
+                    query); });
+            renderPopupAccounts(filtered);
+        }
+
+        function resetAccountFilter() { document.getElementById('popupSearchInput').value = '';
+            renderPopupAccounts(mockAccounts); }
+
+        function renderPopupAccounts(accounts) {
+            var container = document.getElementById('popupAccountList');
+            if (accounts.length === 0) {
+                container.innerHTML =
+                    '<div style="text-align:center; padding:16px; color:var(--hint-color);">لا توجد حسابات مضافة بعد</div>';
+                return;
+            }
+            var html = '';
+            accounts.forEach(function(acc) {
+                html += '<div class="account-card-mini" onclick="selectAccountFromPopup(\'' + acc.name.replace(/'/g,
+                    "\\'") + '\')"><div class="acc-name"><i class=\'bx bx-user\'></i> ' + acc.name +
+                    '</div><div style="font-size:10px; color:var(--hint-color);">📞 ' + acc.phone + '</div></div>';
+            });
+            container.innerHTML = html;
+        }
+
+        function selectAccountFromPopup(name) {
+            var cf = document.getElementById('customerNameNew');
+            if (cf && document.getElementById('invoicePage') && document.getElementById('invoicePage').classList.contains(
+                    'active')) { cf.value = name;
+                updateInvoicePrevReading(); }
+            var ea = document.getElementById('entryAccount');
+            if (ea && document.getElementById('addEntryPage').classList.contains('active')) {
+                populateEntryAccountSelect();
+                for (var i = 0; i < ea.options.length; i++) { if (ea.options[i].text.includes(name)) { ea.selectedIndex = i;
+                        break; } }
+            }
+            var exClient = document.getElementById('exClientSelect');
+            if (exClient) {
+                populateGenericSelect(exClient);
+                for (var j = 0; j < exClient.options.length; j++) { if (exClient.options[j].text.includes(name)) { exClient
+                        .selectedIndex = j;
+                    break; } }
+            }
+            closeAccountSearchPopup();
+        }
+
+        function populateEntryAccountSelect() {
+            var sel = document.getElementById('entryAccount');
+            if (!sel) return;
+            sel.innerHTML = '<option value="">اختر الحساب</option>';
+            mockAccounts.forEach(function(acc) {
+                sel.innerHTML += '<option value="' + acc.name + '">👤 ' + acc.name + ' (' + acc.phone + ')</option>';
+            });
+        }
+
+        function populateGenericSelect(sel) {
+            if (!sel) return;
+            var currentVal = sel.value;
+            sel.innerHTML = '<option value="">اختر الحساب</option>';
+            mockAccounts.forEach(function(acc) {
+                sel.innerHTML += '<option value="' + acc.name + '">👤 ' + acc.name + ' (' + acc.phone + ')</option>';
+            });
+            if (currentVal) sel.value = currentVal;
+        }
+
+        function updateDirectoryList() {
+            var container = document.getElementById('directoryList');
+            if (!container) return;
+            if (mockAccounts.length === 0) {
+                container.innerHTML =
+                    '<div style="text-align:center; padding:20px; color:var(--hint-color);">لا يوجد مشتركين بعد</div>';
+                return;
+            }
+            var html = '';
+            mockAccounts.forEach(function(acc) {
+                html +=
+                    '<div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-light); border-radius:12px; padding:10px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">';
+                html += '<span style="font-weight:700;"><i class=\'bx bx-user\'></i> ' + acc.name + '</span>';
+                html += '<span style="font-size:11px; color:var(--hint-color);"><i class=\'bx bx-phone\'></i> ' + acc.phone +
+                    '</span>';
+                html += '</div>';
+            });
+            container.innerHTML = html;
+        }
+
+        function openCamera() {
+            if (tg && tg.showScanQrPopup) {
+                tg.showScanQrPopup({ text: 'وجه الكاميرا على العداد' }, function(result) {
+                    var field = document.getElementById('currentReadingNew');
+                    if (field) field.value = result;
+                });
+            } else {
+                var val = prompt('📷 محاكاة الكاميرا - أدخل القراءة:');
+                if (val) {
+                    var field = document.getElementById('currentReadingNew');
+                    if (field) field.value = val;
+                }
+            }
+        }
+
+        function openContacts() {
+            if (tg && tg.requestContact) {
+                tg.requestContact(function(contact) {
+                    if (contact && contact.phone_number) document.getElementById('accPhone').value = contact
+                        .phone_number;
+                });
+            } else {
+                var phone = prompt('📇 أدخل رقم الهاتف:');
+                if (phone) document.getElementById('accPhone').value = phone;
+            }
+        }
+
+        function updateInvoicePrevReading() {
+            var el = document.getElementById('prevReadingValue');
+            if (!el) return;
+            el.innerText = '0.0';
+        }
+
+        function saveNewInvoice() {
+            var customer = document.getElementById('customerNameNew').value;
+            var current = parseFloat(document.getElementById('currentReadingNew').value);
+            if (!customer) { showCustomAlert('⚠️ خطأ', 'يرجى إدخال اسم المشترك!'); return; }
+            if (isNaN(current)) { showCustomAlert('⚠️ خطأ', 'يرجى إدخال القراءة الحالية!'); return; }
+            showSuccessOverlay('تم حفظ الفاتورة!', 'تم حفظ فاتورة ' + customer + ' بنجاح.');
+            if (whatsappSettings.notifyInvoice) {
+                var phone = getAccountPhone(customer);
+                var currency = document.querySelector('input[name="invoiceCurrencyNew"]:checked')?.value || 'YER';
+                var msg = formatWhatsAppMessage('invoice', { customer: customer, reading: current, amount: current, currency: currency });
+                sendWhatsApp(phone, msg);
+            }
+            showToast('✨ تم حفظ وترحيل الفاتورة بنجاح! 🚀');
+            document.getElementById('customerNameNew').value = '';
+            document.getElementById('currentReadingNew').value = '';
+            document.getElementById('prevReadingValue').innerText = '0.0';
+        }
+
+        function saveNewEntry() {
+            var account = document.getElementById('entryAccount').value;
+            var amount = document.getElementById('entryAmount').value;
+            var statement = document.getElementById('entryStatement').value;
+            if (!account) { showCustomAlert('⚠️ خطأ', 'يرجى اختيار الحساب!'); return; }
+            if (!amount || parseFloat(amount) <= 0) { showCustomAlert('⚠️ خطأ', 'يرجى إدخال مبلغ صحيح!'); return; }
+            var entry = {
+                id: 'entry_' + Date.now(),
+                dateTime: document.getElementById('entryDateTime').value || getCurrentDateTime(),
+                account: account,
+                box: 'الصندوق الرئيسي',
+                currency: document.getElementById('entryCurrency').value,
+                type: entryType,
+                amount: parseFloat(amount),
+                statement: statement || 'قيد محاسبي'
+            };
+            mockEntries.unshift(entry);
+            renderEntriesList();
+            updateEntriesStats();
+            updateStats();
+            showSuccessOverlay('تم حفظ القيد!', 'تم حفظ القيد بنجاح للحساب: ' + account);
+            document.getElementById('entryAmount').value = '';
+            document.getElementById('entryStatement').value = '';
+            var af = document.getElementById('amountFeedback');
+            if (af) af.innerText = '';
+            if (whatsappSettings.notifyNewEntry) {
+                var phone = getAccountPhone(account);
+                var msg = formatWhatsAppMessage('new_entry', entry);
+                sendWhatsApp(phone, msg);
+            }
+        }
+
+        function setEntryType(type, btn) {
+            entryType = type;
+            document.getElementById('typeCreditBtn').classList.remove('active');
+            document.getElementById('typeDebitBtn').classList.remove('active');
+            if (btn) btn.classList.add('active');
+        }
+
+        function setTransferMode(mode, btn) {
+            transferMode = mode;
+            document.getElementById('transferReceiveBtn').classList.remove('active');
+            document.getElementById('transferSendBtn').classList.remove('active');
+            if (btn) btn.classList.add('active');
+            var container = document.getElementById('transferCommissionContainer');
+            if (container) container.style.display = mode === 'send' ? 'block' : 'none';
+        }
+
+        function switchExchangeMode(mode, btn) {
+            exchangeMode = mode;
+            document.getElementById('exchangeClientTab').classList.remove('active');
+            document.getElementById('exchangeBoxTab').classList.remove('active');
+            if (btn) btn.classList.add('active');
+            document.getElementById('exchangeClientContent').style.display = mode === 'client' ? 'block' : 'none';
+            document.getElementById('exchangeBoxContent').style.display = mode === 'box' ? 'block' : 'none';
+        }
+
+        function setExchangeDirection(dir, btn) {
+            exchangeDirection = dir;
+            document.getElementById('exSellBtn').classList.toggle('active-sell', dir === 'sell');
+            document.getElementById('exBuyBtn').classList.toggle('active-buy', dir === 'buy');
+            updateExchangeCalc();
+        }
+
+        function setExchangeDirectionBox(dir, btn) {
+            exchangeDirectionBox = dir;
+            document.getElementById('exSellBtnBox').classList.toggle('active-sell', dir === 'sell');
+            document.getElementById('exBuyBtnBox').classList.toggle('active-buy', dir === 'buy');
+            updateExchangeCalcBox();
+        }
+
+        function updateExchangeCalc() {
+            var amount = parseFloat(document.getElementById('exAmount').value) || 0;
+            var rate = parseFloat(document.getElementById('exRate').value) || 139.5;
+            var result;
+            if (exchangeDirection === 'sell') {
+                result = amount * rate;
+            } else {
+                result = amount / rate;
+            }
+            document.getElementById('exResultValueClient').innerText = result.toFixed(2);
+            document.getElementById('exResultClient').style.display = 'block';
+        }
+
+        function updateExchangeCalcBox() {
+            var amount = parseFloat(document.getElementById('exAmountBox').value) || 0;
+            var rate = parseFloat(document.getElementById('exRateBox').value) || 139.5;
+            var result;
+            if (exchangeDirectionBox === 'sell') {
+                result = amount * rate;
+            } else {
+                result = amount / rate;
+            }
+            document.getElementById('exResultValueBox').innerText = result.toFixed(2);
+            document.getElementById('exResultBox').style.display = 'block';
+        }
+
+        function executeExchange(type) {
+            var client, from, to, amount, rate;
+            if (type === 'client') {
+                client = document.getElementById('exClientSelect').value;
+                from = document.getElementById('exFromCurrency').value;
+                to = document.getElementById('exToCurrency').value;
+                amount = document.getElementById('exAmount').value;
+                rate = document.getElementById('exRate').value;
+                if (!client) { showCustomAlert('⚠️ خطأ', 'يرجى اختيار العميل!'); return; }
+            } else {
+                from = document.getElementById('exFromCurrencyBox').value;
+                to = document.getElementById('exToCurrencyBox').value;
+                amount = document.getElementById('exAmountBox').value;
+                rate = document.getElementById('exRateBox').value;
+            }
+            if (!amount || parseFloat(amount) <= 0) { showCustomAlert('⚠️ خطأ', 'يرجى إدخال مبلغ صحيح!'); return; }
+            var result = exchangeDirection === 'sell' ? parseFloat(amount) * parseFloat(rate) : parseFloat(amount) / parseFloat(
+                rate);
+            showSuccessOverlay('تمت المصارفة بنجاح!', 'المبلغ: ' + amount + ' من ' + from + ' إلى ' + to + '\nالنتيجة: ' + result
+                .toFixed(2) + ' ' + to);
+            showToast('💱 تمت المصارفة بنجاح');
+            if (type === 'client') { document.getElementById('exAmount').value = ''; } else { document.getElementById('exAmountBox')
+                    .value = ''; }
+            if (whatsappSettings.notifyExchange && type === 'client') {
+                var phone = getAccountPhone(client);
+                var msg = formatWhatsAppMessage('exchange', { client: client, fromAmount: amount, fromCurrency: from,
+                    toAmount: result.toFixed(2), toCurrency: to });
+                sendWhatsApp(phone, msg);
+            }
+        }
+
+        function renderEntriesList() {
+            var container = document.getElementById('entriesList');
+            if (!container) return;
+            if (mockEntries.length === 0) {
+                container.innerHTML =
+                    '<div style="text-align:center; padding:40px 20px; color:var(--hint-color); font-size:13px;"><div style="font-size:32px; margin-bottom:10px;"><i class=\'bx bx-list-ul\'></i></div><div>لا توجد قيود مسجلة بعد. ابدأ بإضافة قيد جديد.</div></div>';
+                return;
+            }
+            var html = '';
+            mockEntries.forEach(function(entry) {
+                var typeColor = entry.type === 'credit' ? '#00f2fe' : '#ff4757';
+                var typeSymbol = entry.type === 'credit' ? '▲' : '▼';
+                html += '<div class="entry-card" id="card_' + entry.id + '" style="transition:all 0.3s ease;">';
+                html += '<div class="card-top-row"><span class="time-stamp">' + entry.dateTime +
+                    '</span><span class="status-indicator">✓ مكتمل</span></div>';
+                html += '<div class="account-title"><i class=\'bx bx-user\'></i> ' + entry.account + '</div>';
+                html += '<div class="meta-text">العملة: <b>' + entry.currency + '</b></div>';
+                html += '<div class="statement-text">' + entry.statement + '</div>';
+                html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.05);"><span class="amount-num" style="color:' +
+                    typeColor + '; font-weight:700; font-size:16px;">' + typeSymbol + ' ' + entry.amount
+                    .toLocaleString() + ' ' + entry.currency + '</span></div>';
+                html += '<div class="bottom-actions-row" style="margin-top:12px;">';
+                html += '<button class="circle-action-btn" onclick="editEntry(\'' + entry.id +
+                    '\')"><span class="circle-icon"><i class=\'bx bx-edit\'></i></span><span class="btn-lbl">تعديل</span></button>';
+                html +=
+                    '<button class="circle-action-btn" style="border-color:rgba(239,68,68,0.15);" onclick="deleteEntryWithAnimation(\'' +
+                    entry.id +
+                    '\')"><span class="circle-icon" style="color:#ff4757;"><i class=\'bx bx-trash\'></i></span><span class="btn-lbl" style="color:#ff4757;">حذف</span></button>';
+                html += '</div></div>';
+            });
+            container.innerHTML = html;
+        }
+
+        function deleteEntryWithAnimation(id) {
+            var entry = mockEntries.find(e => e.id === id);
+            if (entry && whatsappSettings.notifyDeleteEntry) {
+                var phone = getAccountPhone(entry.account);
+                var msg = formatWhatsAppMessage('delete_entry', entry);
+                sendWhatsApp(phone, msg);
+            }
+            var card = document.getElementById('card_' + id);
+            if (card) {
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.9) translateY(10px)';
+                setTimeout(function() {
+                    mockEntries = mockEntries.filter(function(e) { return e.id !== id; });
+                    renderEntriesList();
+                    updateEntriesStats();
+                    updateStats();
+                    showToast('🗑️ تم حذف القيد بنجاح');
+                }, 300);
+            }
+        }
+
+        function editEntry(id) {
+            var entry = mockEntries.find(e => e.id === id);
+            if (!entry) return;
+            var newAmount = prompt('تعديل المبلغ (الحالي: ' + entry.amount + ')', entry.amount);
+            if (newAmount === null) return;
+            var newStatement = prompt('تعديل البيان (الحالي: ' + entry.statement + ')', entry.statement);
+            if (newStatement === null) return;
+            var oldAmount = entry.amount;
+            var oldStatement = entry.statement;
+            entry.amount = parseFloat(newAmount) || oldAmount;
+            entry.statement = newStatement || oldStatement;
+            renderEntriesList();
+            updateEntriesStats();
+            updateStats();
+            showToast('✏️ تم تعديل القيد');
+            if (whatsappSettings.notifyEditEntry) {
+                var phone = getAccountPhone(entry.account);
+                var msg = formatWhatsAppMessage('edit_entry', { account: entry.account, oldAmount: oldAmount, newAmount: entry
+                        .amount, currency: entry.currency, oldStatement: oldStatement, newStatement: entry.statement });
+                sendWhatsApp(phone, msg);
+            }
+        }
+
+        function updateEntriesStats() {
+            var countEl = document.getElementById('entriesCount'),
+                creditEl = document.getElementById('totalCredit'),
+                debitEl = document.getElementById('totalDebit'),
+                netEl = document.getElementById('netBalance');
+            if (!countEl) return;
+            var tc = 0,
+                td = 0;
+            mockEntries.forEach(function(e) { if (e.type === 'credit') tc += e.amount;
+                else td += e.amount; });
+            countEl.innerText = mockEntries.length;
+            if (creditEl) creditEl.innerText = tc.toLocaleString();
+            if (debitEl) debitEl.innerText = td.toLocaleString();
+            if (netEl) netEl.innerText = (tc - td).toLocaleString();
+        }
+
+        function filterEntries(period, btn) {
+            var tabs = document.querySelectorAll('#entriesPage .tab-btn');
+            tabs.forEach(function(t) { t.classList.remove('active'); });
+            if (btn) btn.classList.add('active');
+            showToast('🔍 تم تطبيق الفلترة: ' + period);
+        }
+
+        function searchEntriesLive(query) {
+            var filter = query.toLowerCase().trim();
+            mockEntries.forEach(function(entry) {
+                var card = document.getElementById('card_' + entry.id);
+                if (!card) return;
+                var match = entry.account.toLowerCase().includes(filter) || entry.statement.toLowerCase()
+                    .includes(filter) || entry.amount.toString().includes(filter);
+                card.style.display = match ? 'block' : 'none';
+            });
+        }
+
+        function refreshDataWithLoader(btn) {
+            if (btn) { btn.style.transform = 'rotate(360deg)';
+                btn.style.transition = 'transform 0.8s ease'; }
+            showToast('🔄 جاري تحديث ومزامنة البيانات...');
+            setTimeout(function() { renderEntriesList();
+                updateEntriesStats();
+                updateStats(); if (btn) { btn.style.transform = 'none';
+                    btn.style.transition = 'none'; }
+                showToast('✨ تم التحديث والمزامنة بنجاح!'); }, 1000);
+        }
+
+        function watchAmountInput(inputEl, feedbackElId) {
+            var feedbackEl = document.getElementById(feedbackElId);
+            if (!feedbackEl) return;
+            var val = parseFloat(inputEl.value);
+            if (!val || isNaN(val)) { feedbackEl.innerText = ''; return; }
+            var tafqeet = tafqeetNumber(val);
+            feedbackEl.innerHTML = 'المبلغ كتابةً: <b style="color:#00f2fe;">' + tafqeet + '</b>';
+        }
+
+        function tafqeetNumber(num) {
+            if (!num || isNaN(num)) return '';
+            var units = ['', 'ألف', 'مليون', 'مليار'];
+            var digits = ['', 'واحد', 'اثنان', 'ثلاثة', 'أربعة', 'خمسة', 'ستة', 'سبعة', 'ثمانية', 'تسعة'];
+            var teens = ['عشرة', 'أحد عشر', 'اثنا عشر', 'ثلاثة عشر', 'أربعة عشر', 'خمسة عشر', 'ستة عشر', 'سبعة عشر',
+            'ثمانية عشر', 'تسعة عشر'];
+            var tens = ['', 'عشرة', 'عشرون', 'ثلاثون', 'أربعون', 'خمسون', 'ستون', 'سبعون', 'ثمانون', 'تسعون'];
+            var hundreds = ['', 'مائة', 'مئتان', 'ثلاثمائة', 'أربعمائة', 'خمسمائة', 'ستمائة', 'سبعمائة', 'ثمانمائة',
+            'تسعمائة'];
+
+            function convertLessThanThousand(n) {
+                var result = '';
+                if (n >= 100) { result += hundreds[Math.floor(n / 100)] + ' ';
+                    n %= 100; }
+                if (n >= 20) { result += (n % 10 === 0 ? '' : digits[n % 10] + ' و') + tens[Math.floor(n / 10)]; } else if (
+                    n >= 10) { result += teens[n - 10]; } else if (n > 0) { result += digits[n]; }
+                return result.trim();
+            }
+            if (num === 0) return 'صفر';
+            var result = '';
+            var unitIndex = 0;
+            while (num > 0) { var chunk = num % 1000; if (chunk > 0) { var chunkText = convertLessThanThousand(chunk); if (
+                        unitIndex > 0 && chunk === 1 && unitIndex === 1) chunkText = 'ألف';
+                    else if (unitIndex > 0 && chunk === 2 && unitIndex === 1) chunkText = 'ألفان';
+                    else if (unitIndex > 0 && chunk > 10) chunkText += ' ' + units[unitIndex] + 'اً';
+                    else if (unitIndex > 0) chunkText += ' ' + units[unitIndex];
+                    result = chunkText + (result ? ' و' + result : ''); }
+                num = Math.floor(num / 1000);
+                unitIndex++; }
+            return result.trim();
+        }
+
+        function switchQuickTab(contentId, btn) {
+            document.querySelectorAll('.quick-tab-content').forEach(function(c) { c.style.display = 'none'; });
+            document.querySelectorAll('.quick-tab').forEach(function(t) { t.classList.remove('active'); });
+            var content = document.getElementById(contentId);
+            if (content) content.style.display = 'block';
+            if (btn) btn.classList.add('active');
+            updateAllDateFields();
+            if (contentId === 'currencyExchangeContent') { switchExchangeMode('client', document.getElementById(
+                    'exchangeClientTab')); }
+        }
+
+        function saveNewAccount() {
+            var name = document.getElementById('accName').value;
+            var phone = document.getElementById('accPhone').value;
+            if (!name) { showCustomAlert('⚠️ حقل إلزامي', 'الرجاء إدخال اسم الحساب!'); return; }
+            mockAccounts.push({ name: name, phone: phone || '', balances: {} });
+            showSuccessOverlay('تم إضافة الحساب!', 'تم إضافة الحساب: ' + name + ' بنجاح.');
+            updateStats();
+            populateEntryAccountSelect();
+            updateDirectoryList();
+            document.getElementById('accName').value = '';
+            document.getElementById('accPhone').value = '';
+            document.getElementById('accNotes').value = '';
+            switchPage('mainPage');
+        }
+
+        function saveNewStaff() {
+            var name = document.getElementById('staffName').value;
+            var phone = document.getElementById('staffPhone').value;
+            var username = document.getElementById('staffUsername').value;
+            var pass = document.getElementById('staffPassword').value;
+            var confirmPass = document.getElementById('staffConfirmPassword').value;
+            if (!name || !phone || !username || !pass) { showCustomAlert('⚠️ خطأ', 'يرجى ملء جميع الحقول!'); return; }
+            if (pass !== confirmPass) { showCustomAlert('❌ خطأ', 'تأكيد كلمة المرور غير مطابق!'); return; }
+            var container = document.getElementById('staffCredentialsContainer');
+            var credHtml = '<div class="staff-credentials-box"><strong>📋 بيانات الموظف:</strong><br>';
+            credHtml += '👤 الاسم: <strong>' + name + '</strong><br>';
+            credHtml += '📞 الرقم: <strong>' + phone + '</strong><br>';
+            credHtml += '👤 المستخدم: <strong>' + username + '</strong><br>';
+            credHtml += '🔑 كلمة المرور: <strong>' + pass + '</strong><br>';
+            credHtml += '</div>';
+            credHtml +=
+                '<button class="copy-credentials-btn" onclick="copyStaffCredentials(\'' + name + '|' + phone + '|' + username +
+                '|' + pass + '\')"><i class=\'bx bx-copy\'></i> نسخ البيانات</button>';
+            container.innerHTML = credHtml;
+            container.style.display = 'block';
+            showSuccessOverlay('تم إضافة الموظف!', 'تم إضافة ' + name + ' بنجاح.\nيمكنك نسخ بيانات الدخول من الأسفل.');
+            document.getElementById('staffName').value = '';
+            document.getElementById('staffPhone').value = '';
+            document.getElementById('staffUsername').value = '';
+            document.getElementById('staffPassword').value = '';
+            document.getElementById('staffConfirmPassword').value = '';
+        }
+
+        function copyStaffCredentials(data) {
+            var parts = data.split('|');
+            var text = 'بيانات الموظف:\nالاسم: ' + parts[0] + '\nالرقم: ' + parts[1] + '\nالمستخدم: ' + parts[2] +
+                '\nكلمة المرور: ' + parts[3];
+            if (navigator.clipboard) { navigator.clipboard.writeText(text);
+                showToast('📋 تم نسخ بيانات الموظف!'); } else { showCustomAlert('📋 بيانات الموظف', text); }
+        }
+
+        function changePassword() {
+            var oldP = document.getElementById('oldPassword').value;
+            var newP = document.getElementById('newPassword').value;
+            var confirmP = document.getElementById('confirmNewPassword').value;
+            if (!oldP || !newP || !confirmP) { showCustomAlert('⚠️ خطأ', 'يرجى ملء جميع الحقول!'); return; }
+            if (newP !== confirmP) { showCustomAlert('❌ خطأ', 'تأكيد كلمة المرور الجديدة غير مطابق!'); return; }
+            if (currentUser && currentUser.password === oldP) {
+                currentUser.password = newP;
+                localStorage.setItem('eltizam_pro_user', JSON.stringify(currentUser));
+                showSuccessOverlay('تم تغيير كلمة السر!', 'تم تغيير كلمة السر بنجاح.');
+                document.getElementById('oldPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmNewPassword').value = '';
+            } else {
+                showCustomAlert('❌ خطأ', 'كلمة المرور القديمة غير صحيحة!');
+            }
+        }
+
+        function copyReferralLink() {
+            if (navigator.clipboard) navigator.clipboard.writeText('t.me/EltizamProBot?start=user123');
+            showCustomAlert('📋 تم النسخ', 'تم نسخ رابط الإحالة إلى الحافظة.');
+        }
+
+        function toggleSettingsDropdown() { var d = document.getElementById('settingsDropdown');
+            d.style.display = (d.style.display === 'block') ? 'none' : 'block'; }
+
+        function goBackToMain() { switchPage('mainPage'); }
+
+        function switchPage(pageId) {
+            var dropdown = document.getElementById('settingsDropdown');
+            if (dropdown) dropdown.style.display = 'none';
+            document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+            var target = document.getElementById(pageId);
+            if (target) { target.classList.add('active');
+                window.scrollTo(0, 0);
+                updateAllDateFields(); if (pageId === 'directoryPage') updateDirectoryList(); if (pageId ===
+                    'addEntryPage') { populateEntryAccountSelect();
+                    switchQuickTab('addEntryContent', document.querySelector('#addEntryPage .quick-tab')); }
+                previousPage = pageId; }
+            // إظهار/إخفاء زر الرجوع العائم
+            var fb = document.getElementById('floatingBackBtn');
+            if (fb) { fb.style.display = (pageId !== 'mainPage') ? 'flex' : 'none'; }
+        }
+
+        function openCurrencyPopup(selectEl) { targetCurrencySelect = selectEl;
+            document.getElementById('currencyPopup').classList.add('show'); }
+
+        function closeCurrencyPopup() { document.getElementById('currencyPopup').classList.remove('show');
+            targetCurrencySelect = null; }
+
+        function selectCurrency(cur) { if (targetCurrencySelect) { targetCurrencySelect.value = cur; } closeCurrencyPopup(); }
+
+        function setMainCurrency(cur) { mainCurrency = cur;
+            document.getElementById('mainCurrencyFeedback').innerText = '✅ تم تعيين العملة الرئيسية: ' + cur;
+            updateStats();
+            showToast('💱 تم تغيير العملة الرئيسية إلى ' + cur); }
+
+        function uploadLogo(input) { if (input.files && input.files[0]) { var reader = new FileReader();
+                reader.onload = function(e) { appLogo = e.target.result; var container = document.getElementById(
+                        'mainLogoContainer');
+                    container.innerHTML = '<img src="' + appLogo +
+                        '" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">';
+                    showToast('🖼️ تم رفع الشعار الجديد'); };
+                reader.readAsDataURL(input.files[0]); } }
+
+        function deleteLogo() { appLogo = null; var container = document.getElementById('mainLogoContainer');
+            container.innerHTML =
+                '<img src="https://i.postimg.cc/7Jvt7c0r/logo.png" alt="التزام برو" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+            showToast('🗑️ تم حذف الشعار والعودة للافتراضي'); }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadWhatsAppSettings();
+            checkAuth();
+            updateAllDateFields();
+            renderEntriesList();
+            updateEntriesStats();
+            updateStats();
+            populateEntryAccountSelect();
+            updateDirectoryList();
+            var firstQuickTab = document.querySelector('#addEntryPage .quick-tab');
+            if (firstQuickTab) switchQuickTab('addEntryContent', firstQuickTab);
+            var exClientTab = document.getElementById('exchangeClientTab');
+            if (exClientTab) switchExchangeMode('client', exClientTab);
+        });
+    </script>
+</body>
+</html>
